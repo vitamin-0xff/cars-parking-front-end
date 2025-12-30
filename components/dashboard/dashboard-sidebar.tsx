@@ -1,5 +1,5 @@
 "use client"
-import { LayoutDashboard, BarChart3, Users, Settings, FileText, Calendar, Inbox } from "lucide-react"
+import { LayoutDashboard, BarChart3, Users, Settings, FileText, Calendar, Inbox, ParkingCircle, SquareParking } from "lucide-react"
 
 import {
   Sidebar,
@@ -14,39 +14,21 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 // Customizable navigation items
 const navigationItems = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
-    href: "#dashboard",
+    href: "/",
   },
   {
-    title: "Analytics",
-    icon: BarChart3,
-    href: "#analytics",
-  },
-  {
-    title: "Users",
-    icon: Users,
-    href: "#users",
-  },
-  {
-    title: "Reports",
-    icon: FileText,
-    href: "#reports",
-  },
-  {
-    title: "Calendar",
-    icon: Calendar,
-    href: "#calendar",
-  },
-  {
-    title: "Messages",
-    icon: Inbox,
-    href: "#messages",
-  },
+    title: "Parkings",
+    icon: SquareParking,
+    href: "/parkings",
+  }
 ]
 
 const secondaryItems = [
@@ -58,6 +40,8 @@ const secondaryItems = [
 ]
 
 export function DashboardSidebar() {
+  const navigator = useRouter();
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b">
@@ -80,10 +64,10 @@ export function DashboardSidebar() {
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.href}>
+                    <button onClick={() => navigator.replace(item.href)}>
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
-                    </a>
+                    </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -98,10 +82,10 @@ export function DashboardSidebar() {
               {secondaryItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.href}>
+                    <Link href={item.href}>
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
