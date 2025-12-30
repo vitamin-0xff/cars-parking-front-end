@@ -1,0 +1,107 @@
+{
+  "common": {
+    "search": "Search...",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "edit": "Edit",
+    "view": "View",
+    "actions": "Actions",
+    "noResults": "No results.",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{current}} of {{total}}"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "users": "Users",
+    "reports": "Reports",
+    "calendar": "Calendar",
+    "messages": "Messages",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back! Here's an overview of your metrics.",
+    "subtitle": "from where you can manage your resources effectively",
+    "welcomeCard": {
+      "title": "Welcome to the Dashboard",
+      "description": "This is your main dashboard where you can monitor and manage all your resources effectively. Use the sidebar to navigate through different sections."
+    }
+  },
+  "stats": {
+    "totalRevenue": "Total Revenue",
+    "activeUsers": "Active Users",
+    "sales": "Sales",
+    "growthRate": "Growth Rate",
+    "vsLastPeriod": "vs last period"
+  },
+  "charts": {
+    "revenueOverview": "Revenue Overview",
+    "monthlyRevenue": "Monthly revenue for the current year",
+    "userGrowth": "User Growth",
+    "activeUsersOverTime": "Active users over time",
+    "salesComparison": "Sales Comparison",
+    "monthlySalesBreakdown": "Monthly sales breakdown",
+    "multiMetricAnalysis": "Multi-metric Analysis",
+    "compareMetrics": "Compare revenue, users, and sales"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "reports": "Reports"
+  },
+  "table": {
+    "name": "Name",
+    "email": "Email",
+    "status": "Status",
+    "role": "Role",
+    "lastActive": "Last Active",
+    "userManagement": "User Management",
+    "manageUsers": "Manage and view all users in your system."
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "newUserRegistered": "New user registered",
+    "systemUpdateAvailable": "System update available",
+    "newMessageReceived": "New message received",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago"
+  },
+  "userMenu": {
+    "myAccount": "My Account",
+    "profile": "Profile",
+    "settings": "Settings",
+    "team": "Team",
+    "logOut": "Log out"
+  },
+  "activity": {
+    "title": "Recent Activity",
+    "createdReport": "created a new report",
+    "updatedSettings": "updated user settings for",
+    "deleted": "deleted",
+    "encounteredError": "encountered an error while processing"
+  },
+  "alertDialog": {
+    "areYouSure": "Are you sure?",
+    "deleteConfirmation": "This action cannot be undone. This will permanently delete the user."
+  },
+  "sidebar": {
+    "title": "Sidebar",
+    "description": "Displays the mobile sidebar."
+  },
+  "buttons": {
+    "clickMe": "Click me!",
+    "openDialog": "Open dialog!"
+  },
+  "toast": {
+    "buttonClicked": "Button clicked!"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "common": {
+    "search": "Rechercher...",
+    "loading": "Chargement...",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "actions": "Actions",
+    "noResults": "Aucun résultat.",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page": "Page {{current}} sur {{total}}"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "analytics": "Analytique",
+    "users": "Utilisateurs",
+    "reports": "Rapports",
+    "calendar": "Calendrier",
+    "messages": "Messages",
+    "settings": "Paramètres"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bon retour ! Voici un aperçu de vos métriques.",
+    "subtitle": "d'où vous pouvez gérer vos ressources efficacement",
+    "welcomeCard": {
+      "title": "Bienvenue sur le tableau de bord",
+      "description": "Ceci est votre tableau de bord principal où vous pouvez surveiller et gérer toutes vos ressources efficacement. Utilisez la barre latérale pour naviguer entre les différentes sections."
+    }
+  },
+  "stats": {
+    "totalRevenue": "Revenu Total",
+    "activeUsers": "Utilisateurs Actifs",
+    "sales": "Ventes",
+    "growthRate": "Taux de Croissance",
+    "vsLastPeriod": "vs période précédente"
+  },
+  "charts": {
+    "revenueOverview": "Aperçu des Revenus",
+    "monthlyRevenue": "Revenus mensuels pour l'année en cours",
+    "userGrowth": "Croissance des Utilisateurs",
+    "activeUsersOverTime": "Utilisateurs actifs au fil du temps",
+    "salesComparison": "Comparaison des Ventes",
+    "monthlySalesBreakdown": "Répartition mensuelle des ventes",
+    "multiMetricAnalysis": "Analyse Multi-métrique",
+    "compareMetrics": "Comparer revenus, utilisateurs et ventes"
+  },
+  "tabs": {
+    "overview": "Aperçu",
+    "analytics": "Analytique",
+    "reports": "Rapports"
+  },
+  "table": {
+    "name": "Nom",
+    "email": "Email",
+    "status": "Statut",
+    "role": "Rôle",
+    "lastActive": "Dernière Activité",
+    "userManagement": "Gestion des Utilisateurs",
+    "manageUsers": "Gérer et voir tous les utilisateurs de votre système."
+  },
+  "status": {
+    "active": "Actif",
+    "inactive": "Inactif",
+    "pending": "En attente"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "newUserRegistered": "Nouvel utilisateur inscrit",
+    "systemUpdateAvailable": "Mise à jour système disponible",
+    "newMessageReceived": "Nouveau message reçu",
+    "minutesAgo": "il y a {{count}} minutes",
+    "hoursAgo": "il y a {{count}} heures"
+  },
+  "userMenu": {
+    "myAccount": "Mon Compte",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "team": "Équipe",
+    "logOut": "Déconnexion"
+  },
+  "activity": {
+    "title": "Activité Récente",
+    "createdReport": "a créé un nouveau rapport",
+    "updatedSettings": "a mis à jour les paramètres utilisateur pour",
+    "deleted": "a supprimé",
+    "encounteredError": "a rencontré une erreur lors du traitement"
+  },
+  "alertDialog": {
+    "areYouSure": "Êtes-vous sûr ?",
+    "deleteConfirmation": "Cette action ne peut pas être annulée. Cela supprimera définitivement l'utilisateur."
+  },
+  "sidebar": {
+    "title": "Barre latérale",
+    "description": "Affiche la barre latérale mobile."
+  },
+  "buttons": {
+    "clickMe": "Cliquez-moi !",
+    "openDialog": "Ouvrir le dialogue !"
+  },
+  "toast": {
+    "buttonClicked": "Bouton cliqué !"
+  }
+}
