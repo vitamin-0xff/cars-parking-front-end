@@ -10,6 +10,7 @@ import { Users, DollarSign, ShoppingCart, TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTranslation } from "react-i18next"
+import PageHeader from "@/components/page-header"
 
 // Sample data for demonstration
 const statsData = [
@@ -175,12 +176,8 @@ export default function DashboardPage() {
         <div className="flex flex-1 flex-col">
           <TopNav />
           <main className="flex-1 space-y-6 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
-                <p className="text-muted-foreground">Welcome back! Here's an overview of your metrics.</p>
-              </div>
-            </div>
+            {/* Page Header */}
+            <PageHeader title={t('dashboard.title')} subtitle="Welcome back! Here's an overview of your metrics."/> 
 
             {/* Stats Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
