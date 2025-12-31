@@ -1,10 +1,11 @@
 import { countryApi } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { HeadingColumns, TableWrapper } from "../ui/defined-components/table-wrapper";
+import { CountryResponse } from "@/lib/types";
 
 export const CountriesTable = () => {
 
-    const countiesHeaders: HeadingColumns = [
+    const countiesHeaders: HeadingColumns<CountryResponse> = [
         {name: 'Name', keyAccessor: 'name', uniqueKey: 'name'},
         {name: 'Code', keyAccessor: 'isoCode', uniqueKey: 'isoCode'},
         {
@@ -33,7 +34,7 @@ export const CountriesTable = () => {
     return (
         <div>
             {
-                data && <TableWrapper data={data?.content} headingColumns={countiesHeaders}/>
+                data && <TableWrapper onRowClicked={(row) => console.log(row)} data={data.content} headingColumns={countiesHeaders} onDeleteClicked={(row) => console.log("Delete Request: " + row.id)} onViewClicked={(row) => {console.log("View Request " + row.id)}}/>
             }
         </div>
     )
