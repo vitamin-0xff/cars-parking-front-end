@@ -1,24 +1,38 @@
-import { cityApi, countryApi } from "@/lib/api";
+import { cardApi, cityApi, countryApi } from "@/lib/api";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { HeadingColumns, TableWrapper } from "../ui/defined-components/table-wrapper";
-import { CityResponse } from "@/lib/types";
+import { CardResponse, CityResponse } from "@/lib/types";
 import { Pagination } from "../ui/pagination";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export const CitiesTable = () => {
+export const CardsTable = () => {
 
     const navigator = useRouter();
 
-    const countiesHeaders: HeadingColumns<CityResponse> = [
-        {name: 'Name', keyAccessor: 'name', uniqueKey: 'name'},
-        {name: 'Code', keyAccessor: 'postalCode', uniqueKey: 'postalCode'},
-        {name: 'State Code', keyAccessor: 'stateCode', uniqueKey: 'stateCode'},
-        {name: 'Country', keyAccessor: 'country', uniqueKey: 'country',
-            rander: (value: {name: string, id: string}) => {
+    const countiesHeaders: HeadingColumns<CardResponse> = [
+        {name: 'Number', keyAccessor: 'cardNumber', uniqueKey: 'cardNumber'},
+        {name: 'Credits', keyAccessor: 'creditBalance', uniqueKey: 'creditBalance'},
+        {name: 'Client', keyAccessor: 'client', uniqueKey: 'clientFullName',
+            rander: (value: {fullName: string}) =>{
+                return value.fullName; 
+            }
+        },
+        {name: 'Client Email', keyAccessor: 'client', uniqueKey: 'clientEmail',
+            rander: (value: {email: string}) => {
+                return value.email; 
+            }
+        },
+        {name: 'Client Number', keyAccessor: 'client', uniqueKey: 'clientNumber',
+            rander: (value: {number?: string}) => {
+                return value.number ?? 'N/A'; 
+            }
+        },
+        {name: 'Card Status', keyAccessor: 'status', uniqueKey: 'status',
+            rander: (value: string ) => {
                 return (
                     <div className="underline cursor-pointer hover:text-muted-foreground" onClick={() => navigator.replace(`/countries`) }>
-                        {value.name}
+                        {value}
                     </div>
                 ) 
             }
@@ -45,7 +59,7 @@ export const CitiesTable = () => {
 
     const {data, error: e} = useQuery({
         queryKey: ['cities', tableStatus],
-        queryFn:  () => cityApi.getAll(tableStatus),
+        queryFn:  () => cardApi.getAll(tableStatus),
         placeholderData: keepPreviousData
     });
 
@@ -55,7 +69,7 @@ export const CitiesTable = () => {
                 data && <TableWrapper onRowClicked={(row) => console.log(row)} data={data.content} headingColumns={countiesHeaders} onViewClicked={(row) => {console.log("View Request " + row.id)}}/>
             }
             {
-                data && <Pagination totalPages={data.totalPages} currentPage={data.number + 1} onPageChange={(newPage) => setTableStatus((p) => {return {...p, page: newPage - 1}})} />
+                data && <Pagination totalPages={data.totalPages} currentPage={data.totalPages > 0 ? data.number + 1 : data.number} onPageChange={(newPage) => setTableStatus((p) => {return {...p, page: newPage - 1}})} />
             }
         </div>
     )

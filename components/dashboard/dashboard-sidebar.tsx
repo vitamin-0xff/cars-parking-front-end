@@ -1,5 +1,5 @@
 "use client"
-import { LayoutDashboard, BarChart3, Users, Settings, FileText, Calendar, Inbox, ParkingCircle, SquareParking, FlagIcon, EarthIcon } from "lucide-react"
+import { LayoutDashboard, BarChart3, Users, Settings, FileText, Calendar, Inbox, ParkingCircle, SquareParking, FlagIcon, EarthIcon, IdCard } from "lucide-react"
 
 import {
   Sidebar,
@@ -38,6 +38,11 @@ const navigationItems = [
     title: "Cities",
     icon: EarthIcon,
     href: "/cities",
+  },
+  {
+    title: "Cards",
+    icon: IdCard,
+    href: "/cards",
   }
 ]
 
