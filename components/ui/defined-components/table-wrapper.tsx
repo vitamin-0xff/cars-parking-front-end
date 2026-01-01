@@ -3,10 +3,10 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 
 export type HeaderColumn<T> = {
     name: string;
-    keyAccessor: string;
+    keyAccessor: keyof T;
     sortable?: boolean;
     uniqueKey: string;
-    rander?: (value: any, row?: T) => React.ReactNode;
+    render?: (value: any, row?: T) => React.ReactNode;
 }
 
 type OnRowClicked<T> = (row: T) => void;

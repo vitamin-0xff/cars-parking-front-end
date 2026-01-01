@@ -7,6 +7,7 @@ export const ParkingTable = (className: {className?: string}) => {
         queryKey: ['parkings', {page: 0, size: 10}],
         queryFn:  () => parkingApi.getAll({page: 0, size: 20})
     });
+
     return (
         <div className={'' + className}>
         {e && <div className="text-red-500">Error: {e.message}</div>}

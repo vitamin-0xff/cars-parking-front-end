@@ -104,7 +104,7 @@ export interface PlaceResponse {
 
 export interface ParkingResponse {
   id: UUID;
-  place: PlaceResponse;
+  place: CityResponse;
   name: string;
   latitude: number;
   longitude: number;

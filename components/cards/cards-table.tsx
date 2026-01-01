@@ -14,22 +14,22 @@ export const CardsTable = () => {
         {name: 'Number', keyAccessor: 'cardNumber', uniqueKey: 'cardNumber'},
         {name: 'Credits', keyAccessor: 'creditBalance', uniqueKey: 'creditBalance'},
         {name: 'Client', keyAccessor: 'client', uniqueKey: 'clientFullName',
-            rander: (value: {fullName?: string}) =>{
+            render: (value: {fullName?: string}) =>{
                 return value?.fullName ?? 'N/A'; 
             }
         },
         {name: 'Client Email', keyAccessor: 'client', uniqueKey: 'clientEmail',
-            rander: (value: {email?: string}) => {
+            render: (value: {email: string}) => {
                 return value?.email ?? 'N/A'; 
             }
         },
         {name: 'Client Number', keyAccessor: 'client', uniqueKey: 'clientNumber',
-            rander: (value: {phone?: string}) => {
+            render: (value: {phone?: string}) => {
                 return value?.phone ?? 'N/A'; 
             }
         },
         {name: 'Card Status', keyAccessor: 'status', uniqueKey: 'status',
-            rander: (value: string ) => {
+            render: (value: string) => {
                 return (
                     <div className="underline cursor-pointer hover:text-muted-foreground" onClick={() => navigator.replace(`/countries`) }>
                         {value}
@@ -39,7 +39,7 @@ export const CardsTable = () => {
         },
         {
             name: 'Creatation Date', keyAccessor: 'createdAt',
-            rander: (value: string, row: any) => {
+            render: (value: string, row: any) => {
                 const date = new Date(value);
                 return date.toLocaleDateString();
             },
@@ -47,7 +47,7 @@ export const CardsTable = () => {
         },
         {
             name: 'Creatation Time', keyAccessor: 'createdAt',
-            rander: (value: string) => {
+            render: (value: string) => {
                 const date = new Date(value);
                 return date.toLocaleTimeString();
             },
