@@ -43,6 +43,7 @@ import {
   CreditSupplingCreate,
   ApiResponse,
   CountryFuzzySearch,
+  CardCreateV1,
 } from './types';
 import axios, {Axios} from 'axios'
 
@@ -367,10 +368,16 @@ export const cardApi = {
     apiCall<ApiPage<CardResponse>>(`/v1/api/cards/all?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
-    apiCall<CardResponse>(`/v1/api/cards?id=${id}`), // Note: query param
+    apiCall<CardResponse>(`/v1/api/cards/${id}`), // Note: query param
 
   create: (data: CardCreate) =>
     apiCall<CardResponse>('/v1/api/cards', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  createV1: (data: CardCreateV1) =>
+    apiCall<CardResponse>('/v1/api/cards/v11', {
       method: 'POST',
       body: JSON.stringify(data),
     }),

@@ -14,18 +14,18 @@ export const CardsTable = () => {
         {name: 'Number', keyAccessor: 'cardNumber', uniqueKey: 'cardNumber'},
         {name: 'Credits', keyAccessor: 'creditBalance', uniqueKey: 'creditBalance'},
         {name: 'Client', keyAccessor: 'client', uniqueKey: 'clientFullName',
-            rander: (value: {fullName: string}) =>{
-                return value.fullName; 
+            rander: (value: {fullName?: string}) =>{
+                return value?.fullName ?? 'N/A'; 
             }
         },
         {name: 'Client Email', keyAccessor: 'client', uniqueKey: 'clientEmail',
-            rander: (value: {email: string}) => {
-                return value.email; 
+            rander: (value: {email?: string}) => {
+                return value?.email ?? 'N/A'; 
             }
         },
         {name: 'Client Number', keyAccessor: 'client', uniqueKey: 'clientNumber',
-            rander: (value: {number?: string}) => {
-                return value.number ?? 'N/A'; 
+            rander: (value: {phone?: string}) => {
+                return value?.phone ?? 'N/A'; 
             }
         },
         {name: 'Card Status', keyAccessor: 'status', uniqueKey: 'status',
@@ -58,7 +58,7 @@ export const CardsTable = () => {
     const [tableStatus, setTableStatus] = useState<{page: number, size: number}>({page: 0, size: 10});
 
     const {data, error: e} = useQuery({
-        queryKey: ['cities', tableStatus],
+        queryKey: ['cards', tableStatus],
         queryFn:  () => cardApi.getAll(tableStatus),
         placeholderData: keepPreviousData
     });
@@ -66,7 +66,9 @@ export const CardsTable = () => {
     return (
         <div>
             {
-                data && <TableWrapper onRowClicked={(row) => console.log(row)} data={data.content} headingColumns={countiesHeaders} onViewClicked={(row) => {console.log("View Request " + row.id)}}/>
+                data && <TableWrapper onRowClicked={(row) => console.log(row)} data={data.content} headingColumns={countiesHeaders} onViewClicked={(row) => {
+                    navigator.push(`/cards/${row.id}`);
+                }}/>
             }
             {
                 data && <Pagination totalPages={data.totalPages} currentPage={data.totalPages > 0 ? data.number + 1 : data.number} onPageChange={(newPage) => setTableStatus((p) => {return {...p, page: newPage - 1}})} />

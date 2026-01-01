@@ -9,3 +9,30 @@ export function capitalizeFirstLetter(string: string) {
   if(!string || string.length === 0) return string;
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+export function formatDateToYYYYMMDD(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+export function formatDateToDDMMYYYY(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${day}-${month}-${year}`;
+}
+
+export function formatDateToMMDDYYYY(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${month}-${day}-${year}`;
+}
+
+export function browserFromatDate(date: Date): string {
+  return formatDateToYYYYMMDD(date);
+}
+
+export const currencies = ['DT', 'USD']

@@ -324,6 +324,13 @@ export interface CardCreate {
   expiresAt: string;
 }
 
+export interface CardCreateV1 {
+  client: ClientCreate;
+  creditBalance: number;
+  issuedAt: string;
+  expiresAt: string;
+}
+
 export interface CardUpdate {
   clientId?: UUID;
   cardNumber?: string;

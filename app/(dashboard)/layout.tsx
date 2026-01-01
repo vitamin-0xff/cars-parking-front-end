@@ -4,6 +4,7 @@ import { TopNav } from "@/components/dashboard/top-nav"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { ReactNode } from "react"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 const queryClient = new QueryClient()
 
@@ -18,6 +19,7 @@ export default ({children}: {children: ReactNode}) => {
             <TopNav  />
           {children}
           </div>
+          <ReactQueryDevtools initialIsOpen={false} />
       </SidebarProvider> 
     </QueryClientProvider>
     </>

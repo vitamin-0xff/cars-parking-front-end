@@ -18,7 +18,7 @@ export const CitiesTable = () => {
             rander: (value: {name: string, id: string}) => {
                 return (
                     <div className="underline cursor-pointer hover:text-muted-foreground" onClick={() => navigator.replace(`/countries`) }>
-                        {value.name}
+                        {value?.name ?? 'N/A'}
                     </div>
                 ) 
             }
