@@ -1,15 +1,28 @@
-import { countryApi } from "@/lib/api";
+import { cityApi, countryApi } from "@/lib/api";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { HeadingColumns, TableWrapper } from "../ui/defined-components/table-wrapper";
-import { CountryResponse } from "@/lib/types";
+import { CityResponse, CountryResponse } from "@/lib/types";
 import { Pagination } from "../ui/pagination";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export const CountriesTable = () => {
+export const CitiesTable = () => {
 
-    const countiesHeaders: HeadingColumns<CountryResponse> = [
+    const navigator = useRouter();
+
+    const countiesHeaders: HeadingColumns<CityResponse> = [
         {name: 'Name', keyAccessor: 'name', uniqueKey: 'name'},
-        {name: 'Code', keyAccessor: 'isoCode', uniqueKey: 'isoCode'},
+        {name: 'Code', keyAccessor: 'postalCode', uniqueKey: 'postalCode'},
+        {name: 'State Code', keyAccessor: 'stateCode', uniqueKey: 'stateCode'},
+        {name: 'Country', keyAccessor: 'country', uniqueKey: 'country',
+            rander: (value: {name: string, id: string}) => {
+                return (
+                    <div className="underline cursor-pointer hover:text-muted-foreground" onClick={() => navigator.replace(`/countries`) }>
+                        {value.name}
+                    </div>
+                ) 
+            }
+        },
         {
             name: 'Creatation Date', keyAccessor: 'createdAt',
             rander: (value: string, row: any) => {
@@ -31,8 +44,8 @@ export const CountriesTable = () => {
     const [tableStatus, setTableStatus] = useState<{page: number, size: number}>({page: 0, size: 10});
 
     const {data, error: e} = useQuery({
-        queryKey: ['countries', tableStatus],
-        queryFn:  () => countryApi.getAll(tableStatus),
+        queryKey: ['cities', tableStatus],
+        queryFn:  () => cityApi.getAll(tableStatus),
         placeholderData: keepPreviousData
     });
 

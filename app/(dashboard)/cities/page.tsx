@@ -4,26 +4,30 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/ui/defined-components/page-header"
 import { Input } from "@/components/ui/input";
-import { countryApi } from "@/lib/api";
-import { CountryCreate, CountryResponse } from "@/lib/types";
-import { capitalizeFirstLetter } from "@/lib/utils";
-import { countryCreateValidator } from "@/lib/validators";
+import { cityApi, countryApi } from "@/lib/api";
+import { CityCreate, CityResponse, CountryFuzzySearch } from "@/lib/types";
+import { CityCreateInput, cityCreateValidator } from "@/lib/validators";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileJson, Filter, Plus, Search } from "lucide-react"
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { CitiesTable } from "@/components/cities/cities";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { AddCitySheet } from "@/components/ui/defined-components/add-city-sheet";
 
 export default () => {
-    const [addCountryOpen, setAddCountryOpen] = useState(false);
-    const [countryName, setCountryName] = useState('');
-    const [countryCode, setCountryCode] = useState('');
+    const [addcityOpen, setAddcityOpen] = useState(false);
 
     const [submitedWorks, setSubmitedWorks] = useState<{howManySuccess: number, howManyFailed: number, totalDone: number, total: number} | null>(null);
-    const [failedInstances, setFailedInstances] = useState<{raison: string, countryCreate: CountryCreate}[] | null>(null);
-    const [submitedElements, setSubmitedElements] = useState<CountryResponse[] | null>(null);
+    const [failedInstances, setFailedInstances] = useState<{raison: string, cityCreate: CityCreate}[] | null>(null);
+    const [submitedElements, setSubmitedElements] = useState<CityResponse[] | null>(null);
     const [jsonElements, setJsonElements] = useState<string>('');
     const [submitJsonWorkError, setSubmitJsonWorkError] = useState<string | null>(null);
     const [showRapport, setShowRapport] = useState(false);
+
 
     const fashState = () => {
         setSubmitedWorks(null);
@@ -37,30 +41,8 @@ export default () => {
     /* JSON Uploader Modal */
     const [openJsonUploader, setOpenJsonUploader] = useState(false);
 
-    const [countryNameError, setCountryNameError] = useState<string | null>(null);
-    const [countryCodeError, setCountryCodeError] = useState<string | null>(null);
-
     const queryClient = useQueryClient();
 
-    const {isPending, error, mutate} = useMutation({
-        mutationFn: async (countryCreate: CountryCreate) => {
-            setCountryNameError('');
-            setCountryCodeError('');
-            if(countryCreate.name.trim().length === 0) {
-                throw new Error("Country name is required");
-            }
-
-            if(countryCreate.isoCode.trim().length === 0) {
-                throw new Error("Country iso code is required");
-            }
-            return countryApi.create(countryCreate)
-        },
-        onSuccess: () => {
-            setCountryCode('');
-            setCountryName('');
-            queryClient.invalidateQueries({queryKey: ['countries']});
-        }
-    });
 
     const {isPending: isPandingList, error: errorList, mutate: mutateList, reset} = useMutation({
         mutationFn: async () => {
@@ -68,40 +50,40 @@ export default () => {
             if(jsonElements.trim().length === 0) {
                 throw new Error("JSON content is required");
             }
-            const countryCreates: CountryCreate[] = JSON.parse(jsonElements);
-            if(countryCreates.length === 0) {
-                throw new Error("No country to add");
+            const cityCreates: CityCreate[] = JSON.parse(jsonElements);
+            if(cityCreates.length === 0) {
+                throw new Error("No city to add");
             }
 
             setShowRapport(true);
-            for(const countryCreate of countryCreates) {
+            for(const cityCreate of cityCreates) {
                 /* delay server off */
                 await new Promise<void>(resolve => setTimeout(() => resolve(), 500));
-                const parsed = countryCreateValidator.safeParse(countryCreate);
+                const parsed = cityCreateValidator.safeParse(cityCreate);
                 if (parsed.success === false) {
-                    failedInstances?.push({ raison: JSON.stringify(parsed.error.format()), countryCreate });
+                    failedInstances?.push({ raison: JSON.stringify(parsed.error.format()), cityCreate });
                     setSubmitedWorks((value) =>
-                        value ? { ...value, howManyFailed: value.howManyFailed + 1, totalDone: value.totalDone + 1 } : { howManySuccess: 0, howManyFailed: 1, totalDone: 1, total: countryCreates.length }
+                        value ? { ...value, howManyFailed: value.howManyFailed + 1, totalDone: value.totalDone + 1 } : { howManySuccess: 0, howManyFailed: 1, totalDone: 1, total: cityCreates.length }
                     );
                     continue;
                 }
                 try {
-                    const elementCreated = await countryApi.create(parsed.data);
+                    const elementCreated = await cityApi.create(parsed.data);
                     console.log('Created element:', elementCreated);
                     setSubmitedElements((value) => value ? [...value, elementCreated] : [elementCreated]);
                     setSubmitedWorks((value) =>
-                        value ? { ...value, howManySuccess: value.howManySuccess + 1, totalDone: value.totalDone + 1 } : { howManySuccess: 1, howManyFailed: 0, totalDone: 1, total: countryCreates.length }
+                        value ? { ...value, howManySuccess: value.howManySuccess + 1, totalDone: value.totalDone + 1 } : { howManySuccess: 1, howManyFailed: 0, totalDone: 1, total: cityCreates.length }
                     );
                 }catch (e) {
-                    failedInstances?.push({ raison: (e as Error).message, countryCreate });
+                    failedInstances?.push({ raison: (e as Error).message, cityCreate });
                     setSubmitedWorks((value) =>
-                        value ? { ...value, howManyFailed: value.howManyFailed + 1, totalDone: value.totalDone + 1 } : { howManySuccess: 0, howManyFailed: 1, totalDone: 1, total: countryCreates.length }
+                        value ? { ...value, howManyFailed: value.howManyFailed + 1, totalDone: value.totalDone + 1 } : { howManySuccess: 0, howManyFailed: 1, totalDone: 1, total: cityCreates.length }
                     );
                 }
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['countries']});
+            queryClient.invalidateQueries({queryKey: ['cities']});
         },
         onError: (error) => {
             setSubmitJsonWorkError((error as Error).message);
@@ -109,13 +91,13 @@ export default () => {
         }
     });
 
+
     return (
         <main className="p-6">
             <div className="flex justify-between w-full">
-                <PageHeader title="Countries" subtitle="Manage countries here" />
+                <PageHeader title="Cities" subtitle="Manage cities here" />
                 <div className="actions flex gap-2">
-                    <Button onClick={() => setAddCountryOpen(true)}><Plus fontWeight={900} style={{ fontWeight: 900 }} /></Button>
-                    <Button onClick={() => setOpenJsonUploader(true)}><FileJson/></Button>
+                    <Button onClick={() => setAddcityOpen(true)}><Plus fontWeight={900} style={{ fontWeight: 900 }} /></Button>
                     <Button onClick={() => {}}><Filter /></Button>
                     <Button variant={'outline'} className="text-muted-foreground hover:text-white" onClick={() => { }}>
                         <div className="flex items-center gap-2">
@@ -126,52 +108,16 @@ export default () => {
                 </div>
             </div>
             <div className="table-wrapper">
-                <CountriesTable />
+                <CitiesTable />
             </div>
             {/* modals here */}
-            <AlertDialog open={addCountryOpen} onOpenChange={(open) => { setAddCountryOpen(open); }}>
-                <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>
-                        Add Country
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                            Add country from 
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                    {/* Form fields go here */}
-                    {
-                        error && <p className="text-red-500 text-sm">{(error as any).message}</p>
-                    }
-                    <div className="flex flex-col gap-2">
-                        <div>
-                         <label className="block text-xs text-muted-foreground mb-1">Country Name</label>
-                         <Input value={countryName} onChange={(e) => setCountryName(capitalizeFirstLetter(e.currentTarget.value.trim()) ?? '')} placeholder="Eg, Tunisia" />
-                         {
-                            countryNameError && <p className="text-red-500 text-xs mt-1">{countryNameError}</p>
-                         }
-                        </div>
-                        <div>
-                         <label className="block text-xs  text-muted-foreground mb-1">Country Code</label>
-                         <Input value={countryCode} onChange={(e) => setCountryCode(e.currentTarget.value.toLocaleUpperCase())} placeholder="Eg, TN" />
-                         {
-                            countryNameError && <p className="text-red-500 text-xs mt-1">{countryCodeError}</p>
-                         }
-                        </div>
-                    </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel className="hover:text-gray-600" onClick={() => setAddCountryOpen(false)}>Cancel</AlertDialogCancel>
-                    <Button disabled={isPending} onClick={() => {mutate({name: countryName, isoCode: countryCode})}}>Save</Button>
-                </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
+            <AddCitySheet selectedCountry={null} isOpen={addcityOpen} onCloseRequest={() => setAddcityOpen(false)} />
             {/* JSON Uploader Modal */}
             <AlertDialog open={openJsonUploader} onOpenChange={(open) => { setOpenJsonUploader(open); }}>
                 <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>
-                        Add Country list
+                        Add city list
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                         Add List of countries from a JSON file
@@ -200,7 +146,7 @@ export default () => {
                     }
                     <AlertDialogFooter>
                         <AlertDialogCancel className="hover:text-gray-600" onClick={() => {
-                            setAddCountryOpen(false);
+                            setAddcityOpen(false);
                             fashState();
                             reset();
                         }}>Cancel</AlertDialogCancel>

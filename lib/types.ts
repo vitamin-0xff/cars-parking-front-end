@@ -359,6 +359,13 @@ export interface CreditSupplingCreate {
   reference: string;
 }
 
+export interface CountryFuzzySearch {
+  name: string;
+  isoCode: string;
+  id: UUID;
+  sim: number;
+}
+
 // Pagination params
 export interface PageParams {
   page?: number;

@@ -51,7 +51,7 @@ export function TableWrapper<T>({headingColumns, data, className, onRowClicked, 
                         <td>
                             <div className="flex items-center gap-2">
                             {onViewClicked && <button onClick={(e) => {e.stopPropagation(); onViewClicked(row)}} className="border-2 p-1 rounded hover:bg-gray-800">
-                                <Eye size={24}/>    
+                                <Eye size={24} color="gray"/>    
                             </button>}
                             {onDeleteClicked && <button onClick={(e) => {e.stopPropagation(); onDeleteClicked(row)}} className="border-2 p-1 rounded hover:bg-gray-800 text-red-500 hover:underline">
                                 <TrashIcon size={24}/> 

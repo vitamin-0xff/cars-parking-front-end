@@ -42,6 +42,7 @@ import {
   GateMovementCreate,
   CreditSupplingCreate,
   ApiResponse,
+  CountryFuzzySearch,
 } from './types';
 import axios, {Axios} from 'axios'
 
@@ -77,6 +78,9 @@ const apiCall = async <T>(
     });
 
     if (response.status >= 200 && response.status < 300) {
+        if(!response.data.success) {
+            throw Error(response.data.error?.message || 'Something went wrong');
+        }
         return response.data.data;
     } else {
         throw {
@@ -89,7 +93,7 @@ const apiCall = async <T>(
 // === USER API ===
 export const userApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<UserResponse>>(`/v1/api/users?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<UserResponse>>(`/v1/api/users?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
     apiCall<UserResponse>(`/v1/api/users/${id}`),
@@ -119,13 +123,13 @@ export const userApi = {
 // === PLACE API ===
 export const placeApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<PlaceResponse>>(`/v1/api/places?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<PlaceResponse>>(`/v1/api/places?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
     apiCall<PlaceResponse>(`/v1/api/places/${id}`),
 
   getByCityId: (cityId: UUID, params: PageParams) =>
-    apiCall<ApiPage<PlaceResponse>>(`/v1/api/places/city/${cityId}?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<PlaceResponse>>(`/v1/api/places/city/${cityId}?${buildQuery({ size: params.size, page: params.page, sort: params.sort  })}`),
 
   create: (data: PlaceCreate) =>
     apiCall<PlaceResponse>('/v1/api/places', {
@@ -152,13 +156,13 @@ export const placeApi = {
 // === PARKING API ===
 export const parkingApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<ParkingResponse>>(`/v1/api/parkings?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<ParkingResponse>>(`/v1/api/parkings?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
     apiCall<ParkingResponse>(`/v1/api/parkings/${id}`),
 
   getByPlaceId: (placeId: UUID, params: PageParams) =>
-    apiCall<ApiPage<ParkingResponse>>(`/v1/api/parkings/place/${placeId}?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<ParkingResponse>>(`/v1/api/parkings/place/${placeId}?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   create: (data: ParkingCreate) =>
     apiCall<ParkingResponse>('/v1/api/parkings', {
@@ -185,16 +189,16 @@ export const parkingApi = {
 // === PARKING SPOT API ===
 export const parkingSpotApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<ParkingSpotResponse>>(`/v1/api/parking-spots?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<ParkingSpotResponse>>(`/v1/api/parking-spots?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
     apiCall<ParkingSpotResponse>(`/v1/api/parking-spots/${id}`),
 
   getByParkingId: (parkingId: UUID, params: PageParams) =>
-    apiCall<ApiPage<ParkingSpotResponse>>(`/v1/api/parking-spots/parking/${parkingId}?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<ParkingSpotResponse>>(`/v1/api/parking-spots/parking/${parkingId}?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getAvailableByParkingId: (parkingId: UUID, params: PageParams) =>
-    apiCall<ApiPage<ParkingSpotResponse>>(`/v1/api/parking-spots/parking/${parkingId}/available?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<ParkingSpotResponse>>(`/v1/api/parking-spots/parking/${parkingId}/available?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   create: (data: ParkingSpotCreate) =>
     apiCall<ParkingSpotResponse>('/v1/api/parking-spots', {
@@ -227,14 +231,14 @@ export const parkingSpotApi = {
 // === ENTRY GATE API ===
 export const entryGateApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<EntryGateResponse>>(`/v1/api/entry-gates?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<EntryGateResponse>>(`/v1/api/entry-gates?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
     apiCall<EntryGateResponse>(`/v1/api/entry-gates/${id}`),
 
   getByParkingId: (parkingId: UUID, params: PageParams) =>
     apiCall<ApiPage<EntryGateResponse>>(
-      `/v1/api/entry-gates/parking/${parkingId}?${buildQuery({ pageable: params })}`
+      `/v1/api/entry-gates/parking/${parkingId}?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`
     ),
 
   create: (data: EntryGateCreate) =>
@@ -262,7 +266,10 @@ export const entryGateApi = {
 // === COUNTRY API ===
 export const countryApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<CountryResponse>>(`/v1/api/countries?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<CountryResponse>>(`/v1/api/countries?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
+
+  fuzzySearch: (name: string, signal: AbortSignal, threshold: number = 0.2, limit: number = 10) =>
+    apiCall<CountryFuzzySearch[]>(`/v1/api/countries/fuzzySearch?name=${encodeURIComponent(name)}&threshold=${threshold}&limit=${limit}`, { signal }),
 
   getById: (id: UUID) =>
     apiCall<CountryResponse>(`/v1/api/countries/${id}`),
@@ -292,14 +299,14 @@ export const countryApi = {
 // === CITY API ===
 export const cityApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<CityResponse>>(`/v1/api/cities?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<CityResponse>>(`/v1/api/cities?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
     apiCall<CityResponse>(`/v1/api/cities/${id}`),
 
   getByCountryId: (countryId: UUID, params: PageParams) =>
     apiCall<ApiPage<CityResponse>>(
-      `/v1/api/cities/country/${countryId}?${buildQuery({ pageable: params })}`
+      `/v1/api/cities/country/${countryId}?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`
     ),
 
   create: (data: CityCreate) =>
@@ -327,7 +334,7 @@ export const cityApi = {
 // === CLIENT API ===
 export const clientApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<ClientResponse>>(`/v1/api/clients/all?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<ClientResponse>>(`/v1/api/clients/all?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
     apiCall<ClientResponse>(`/v1/api/clients?id=${id}`), // Note: uses query param
@@ -357,7 +364,7 @@ export const clientApi = {
 // === CARD API ===
 export const cardApi = {
   getAll: (params: PageParams) =>
-    apiCall<ApiPage<CardResponse>>(`/v1/api/cards/all?${buildQuery({ pageable: params })}`),
+    apiCall<ApiPage<CardResponse>>(`/v1/api/cards/all?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`),
 
   getById: (id: UUID) =>
     apiCall<CardResponse>(`/v1/api/cards?id=${id}`), // Note: query param
@@ -388,7 +395,7 @@ export const cardApi = {
 export const parkingEventApi = {
   getAll: (params: PageParams) =>
     apiCall<ApiPage<ParkingEventResponse>>(
-      `/v1/api/parkingEvents/all?${buildQuery({ pageable: params })}`
+      `/v1/api/parkingEvents/all?${buildQuery({ size: params.size, page: params.page, sort: params.sort })}`
     ),
 
   getById: (id: UUID) =>
