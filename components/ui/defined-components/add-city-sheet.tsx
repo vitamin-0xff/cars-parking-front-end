@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { XIcon } from "lucide-react";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { set } from "zod";
+import { useCountrySearch } from "@/hooks/use-country-search";
 
 type SelectedCountry = {
     id: string;
@@ -55,24 +56,12 @@ export const AddCitySheet = ({ selectedCountry, isOpen, onCloseRequest }: Propos
 
     const queryClient = useQueryClient();
 
-    useEffect(() => {
-        const searchCountry = async () => {
-            if (serachTerm.trim().length < 2) {
-                setSearchResults([]);
-                return;
-            }
-            try {
-                const results = await countryApi.fuzzySearch(serachTerm.trim(), abordController.signal);
-                setSearchResults(results);
-            } catch (e) {
-                setSearchError((e as Error).message);
-            }
-        }
-        searchCountry();
-        return () => {
-            abordController.abort();
-        };
-    }, [serachTerm]);
+    useCountrySearch({
+        serachTerm,
+        onResult: setSearchResults,
+        onError: setSearchError,
+        abordController: abordController
+    })
 
     const { isPending, error, mutate } = useMutation({
         mutationFn: async (cityCreate: CityCreateInput) => {
