@@ -15,7 +15,7 @@ export const CitiesTable = () => {
         {name: 'Code', keyAccessor: 'postalCode', uniqueKey: 'postalCode'},
         {name: 'State Code', keyAccessor: 'stateCode', uniqueKey: 'stateCode'},
         {name: 'Country', keyAccessor: 'country', uniqueKey: 'country',
-            rander: (value: {name: string, id: string}) => {
+            render: (value: {name: string, id: string}) => {
                 return (
                     <div className="underline cursor-pointer hover:text-muted-foreground" onClick={() => navigator.replace(`/countries`) }>
                         {value?.name ?? 'N/A'}
@@ -25,7 +25,7 @@ export const CitiesTable = () => {
         },
         {
             name: 'Creatation Date', keyAccessor: 'createdAt',
-            rander: (value: string, row: any) => {
+            render: (value: string) => {
                 const date = new Date(value);
                 return date.toLocaleDateString();
             },
@@ -33,7 +33,7 @@ export const CitiesTable = () => {
         },
         {
             name: 'Creatation Time', keyAccessor: 'createdAt',
-            rander: (value: string) => {
+            render: (value: string) => {
                 const date = new Date(value);
                 return date.toLocaleTimeString();
             },

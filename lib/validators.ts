@@ -23,8 +23,14 @@ const cardCreateValidator = z.object({
   creditBalance: z.coerce.number().min(0, { message: "Credit balance cannot be negative" }),
 });
 
+const parkingCreateValidator = z.object({
+  name: z.string().trim().min(2, { message: "Name at least 2 character" }).max(40, { message: "Fullname at max 40 character" }).transform((name) => name.trim().toLowerCase()),
+  totalCapacity: z.coerce.number().min(1, { message: "Total capacity must be at least 1" }),
+});
+
 export type CountryCreateInput = z.infer<typeof countryCreateValidator>;
 export type CityCreateInput = z.infer<typeof cityCreateValidator>;
 export type CardCreateInput = z.infer<typeof cardCreateValidator>;
+export type ParkingCreateInput = z.infer<typeof parkingCreateValidator>;
 
-export {countryCreateValidator, cityCreateValidator, cardCreateValidator};
+export {countryCreateValidator, cityCreateValidator, cardCreateValidator, parkingCreateValidator};

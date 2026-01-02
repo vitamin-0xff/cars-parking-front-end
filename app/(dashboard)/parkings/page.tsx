@@ -41,7 +41,7 @@ export default () => {
                         </TabsTrigger>
                     </TabsList>
                     <TabsContent value="parkings">
-                        <p>Hello world</p>
+                        <ParkingTable className="mt-4"/>
                     </TabsContent>
                     <TabsContent value="gates">
                         <p>Gates</p>

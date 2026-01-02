@@ -39,7 +39,7 @@ export const CardsTable = () => {
         },
         {
             name: 'Creatation Date', keyAccessor: 'createdAt',
-            render: (value: string, row: any) => {
+            render: (value: string) => {
                 const date = new Date(value);
                 return date.toLocaleDateString();
             },

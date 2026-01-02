@@ -6,7 +6,7 @@ export type HeaderColumn<T> = {
     keyAccessor: keyof T;
     sortable?: boolean;
     uniqueKey: string;
-    render?: (value: any, row?: T) => React.ReactNode;
+    render?: (value: any) => React.ReactNode;
 }
 
 type OnRowClicked<T> = (row: T) => void;
@@ -15,7 +15,8 @@ export type HeadingColumns<T> = HeaderColumn<T>[];
 
 export function TableWrapper<T>({headingColumns, data, className, onRowClicked, onDeleteClicked, onViewClicked}: {onDeleteClicked?:(row: T) => void, onViewClicked?: (row: T) => void, onRowClicked?: OnRowClicked<T>, className?: string , headingColumns: HeadingColumns<T>, data: T[]}){
     const isActionSet = onDeleteClicked || onViewClicked;
-
+    console.log("Rendering table with data:", data);
+    console.log("Heading columns:", headingColumns);
     return (
         <Table className={className}>
             <TableHeader>
@@ -32,8 +33,10 @@ export function TableWrapper<T>({headingColumns, data, className, onRowClicked, 
             {
                 data.length === 0 && 
                 <TableRow>
-                    <TableCell colSpan={headingColumns.length} className="text-cente h-24">
-                        No data available.
+                    <TableCell colSpan={headingColumns.length}>
+                        <div className="text-center py-5 font-bold flex justify-center items-center text-muted-foreground h-36">
+                            No data available.
+                        </div>
                     </TableCell>
                 </TableRow>
             }
@@ -43,7 +46,7 @@ export function TableWrapper<T>({headingColumns, data, className, onRowClicked, 
                         headingColumns.map((col) => (
                             <TableCell className="py-5" key={col.uniqueKey}>
                                 {/* @ts-ignore */}
-                                {col.rander ? col.rander(row[col.keyAccessor], row) : row[col.keyAccessor]}
+                                {row[col.keyAccessor] !== undefined ? (col.render ? col.render(row[col.keyAccessor]) : row[col.keyAccessor]) : 'N/A'}
                             </TableCell>
                         ))
                     }
