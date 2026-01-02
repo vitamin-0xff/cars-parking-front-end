@@ -369,6 +369,9 @@ export interface CreditSupplingCreate {
 export interface CountryFuzzySearch {
   name: string;
   isoCode: string;
+  latitude: number;
+  longitude: number;
+  zoomFactor: number;
   id: UUID;
   sim: number;
 }

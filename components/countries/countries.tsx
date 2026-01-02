@@ -12,7 +12,7 @@ export const CountriesTable = () => {
         {name: 'Code', keyAccessor: 'isoCode', uniqueKey: 'isoCode'},
         {
             name: 'Creatation Date', keyAccessor: 'createdAt',
-            rander: (value: string, row: any) => {
+            render: (value: string ) => {
                 const date = new Date(value);
                 return date.toLocaleDateString();
             },
@@ -20,7 +20,7 @@ export const CountriesTable = () => {
         },
         {
             name: 'Creatation Time', keyAccessor: 'createdAt',
-            rander: (value: string) => {
+            render: (value: string) => {
                 const date = new Date(value);
                 return date.toLocaleTimeString();
             },
