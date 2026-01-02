@@ -15,8 +15,6 @@ export type HeadingColumns<T> = HeaderColumn<T>[];
 
 export function TableWrapper<T>({headingColumns, data, className, onRowClicked, onDeleteClicked, onViewClicked}: {onDeleteClicked?:(row: T) => void, onViewClicked?: (row: T) => void, onRowClicked?: OnRowClicked<T>, className?: string , headingColumns: HeadingColumns<T>, data: T[]}){
     const isActionSet = onDeleteClicked || onViewClicked;
-    console.log("Rendering table with data:", data);
-    console.log("Heading columns:", headingColumns);
     return (
         <Table className={className}>
             <TableHeader>
@@ -26,7 +24,7 @@ export function TableWrapper<T>({headingColumns, data, className, onRowClicked, 
                             <TableHead className="text-muted-foreground" key={col.uniqueKey}>{col.name}</TableHead>
                         ))
                     }
-                    {isActionSet && <TableHead className="text-muted-foreground">Actions</TableHead>}
+                    {isActionSet && data.length > 0 && <TableHead className="text-muted-foreground">Actions</TableHead>}
                 </TableRow>
             </TableHeader>
             <TableBody>

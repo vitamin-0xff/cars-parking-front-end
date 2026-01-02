@@ -10,11 +10,12 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form";
 import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import L, { LatLng } from "leaflet";
 import { Autocomplete, AutocompleteItem } from "@/components/ui/defined-components/auto-complete";
 import { useCountrySearch } from "@/hooks/use-country-search";
 import { CountryFuzzySearch } from "@/lib/types";
+import { cityApi } from "@/lib/api";
 
 
 
@@ -51,21 +52,9 @@ function LocationMarker() {
 
 export default () => {
     const navigator = useRouter();
-    const { register, watch, reset, handleSubmit, setValue, formState: { errors } } = useForm({
-        resolver: zodResolver(parkingCreateValidator),
-        defaultValues: {
-            name: '',
-            lastName: '',
-            email: '',
-            phone: '',
-            creditBalance: 0,
-        }
-    });
-
     const [countrySearchTerm, setCountrySearchTerm] = useState('');
     const [countresFuzzySearch, setCountriesFuzzySearch] = useState<CountryFuzzySearch[]>([]);
     const [areWeSearching, setAreWeSearching] = useState(false);
-
 
     useCountrySearch({
         serachTerm: countrySearchTerm,
@@ -73,7 +62,7 @@ export default () => {
         onError: (error) => { console.log(error) },
         abordController: new AbortController(),
         onLoadingStatusChanged: setAreWeSearching
-    })
+    });
 
     const [selectedElement, setSelectedElement] = useState<CountryFuzzySearch | null>(null);
 
@@ -99,19 +88,27 @@ export default () => {
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div title="parking-name">
-                                <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="username">Name</label>
+                                <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="name">Name</label>
                                 <Input id="Parking's Name" placeholder="Eg, Parking Mohamed Saadoun" />
                                 {
                                     // errors.name && <p className="text-sm text-red-600 mt-1">{errors.name.message}</p> 
                                 }
                             </div>
                             <div title="country">
-                                <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="username">Country</label>
+                                <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="country">Country</label>
                                 <Autocomplete placeholder="Eg, Tunisia" value={selectedElement == null ? countrySearchTerm : selectedElement.name} onChange={(value) => { setSelectedElement(null); setCountrySearchTerm(value) }} onSelect={(value) => {
                                     const country = countresFuzzySearch.find((c) => c.id === value.id);
                                     setSelectedElement(country ?? null);
                                 }} items={countresFuzzySearch.map<AutocompleteItem>((value) => { return { label: value.name, id: value.id } })} loading={areWeSearching} />
                             </div>
+                            {
+                                selectedElement && (
+                                    <div title="country">
+                                        <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="governorate">Governorate</label>
+                                        <Autocomplete placeholder="Eg, Ariana" value={''} onChange={() => { }} onSelect={() => { }} items={[]} loading={false} />
+                                    </div>
+                                )
+                            }
                         </div>
                     </CardContent>
                 </Card>
@@ -124,7 +121,7 @@ export default () => {
                                     <p>Parking Location</p>
                                 </div>
                             </CardTitle>
-                            <CardDescription>
+                            <CardDescription>TN-AR
                                 Select the parking location on the map.
                             </CardDescription>
                         </CardHeader>
