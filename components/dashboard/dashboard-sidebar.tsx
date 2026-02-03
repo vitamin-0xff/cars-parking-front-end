@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 // Customizable navigation items
 const navigationItems = [
@@ -56,6 +56,17 @@ const secondaryItems = [
 
 export function DashboardSidebar() {
   const navigator = useRouter();
+  const currentPath = usePathname();
+  console.log("Current path: " + currentPath);
+
+  const isActive = (href: string) => {
+    if (!currentPath) return false;
+    if (href === "/") {
+      return currentPath === "/";
+    }
+    console.log(`Checking if ${href} is included in ${currentPath}: ${currentPath.includes(href)}`);
+    return currentPath.includes(href);
+  };
 
   return (
     <Sidebar>
@@ -70,7 +81,6 @@ export function DashboardSidebar() {
           </div>
         </div>
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Main Navigation</SidebarGroupLabel>
@@ -78,7 +88,7 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild className={isActive(item.href) ? 'text-primary' : ''}>
                     <button onClick={() => navigator.replace(item.href)}>
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
@@ -96,7 +106,7 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {secondaryItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton className={isActive(item.href) ? 'text-primary' : ''} asChild>
                     <Link href={item.href}>
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
