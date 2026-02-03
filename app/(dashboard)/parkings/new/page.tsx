@@ -3,19 +3,25 @@ import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { parkingCreateValidator } from "@/lib/validators";
+import { CityCreateInput, ParkingCreateInput, parkingCreateValidator } from "@/lib/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, MapIcon, ParkingCircle } from "lucide-react";
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form";
-import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useState } from "react";
+import { forwardRef, ReactNode, use, useEffect, useReducer, useState } from "react";
 import L, { LatLng } from "leaflet";
 import { Autocomplete, AutocompleteItem } from "@/components/ui/defined-components/auto-complete";
 import { useCountrySearch } from "@/hooks/use-country-search";
-import { CountryFuzzySearch } from "@/lib/types";
-import { cityApi } from "@/lib/api";
+import { CityResponse, CountryFuzzySearch, ParkingCreate, ParkingStatus } from "@/lib/types";
+import { cityApi, parkingApi } from "@/lib/api";
+import { set } from "zod";
+import toast from "react-hot-toast";
+import { ComposeInput } from "@/components/ui/defined-components/compose-input";
+import { useMutation } from "@tanstack/react-query";
+import { error } from "console";
+import { t } from "i18next";
 
 
 
@@ -29,17 +35,17 @@ const reactIconDivIcon = new L.DivIcon({
 
 const position: [number, number] = [36.8065, 10.1815];
 
-function LocationMarker() {
+
+const LocationMarker = forwardRef(({
+    onPositionChanged,
+}: {
+    onPositionChanged: (latlng: LatLng, zoomFactor: number) => void;
+}, ref) => {
     const [position, setPosition] = useState<LatLng | null>(null);
     const map = useMapEvents({
         click(e) {
             setPosition(e.latlng);
-            map.flyTo(e.latlng, map.getZoom());
-            console.log(e);
-        },
-        locationfound(e) {
-            setPosition(e.latlng)
-            map.flyTo(e.latlng, map.getZoom())
+            onPositionChanged(e.latlng, map.getZoom());
         },
     });
 
@@ -48,23 +54,139 @@ function LocationMarker() {
             <Popup>You are here</Popup>
         </Marker>
     )
+});
+
+function LatitudeLongitudeSetter({lat, lng, zoom, onPositionChange}: {lat: number, lng: number, zoom: number, onPositionChange?: (latlng: LatLng, zoomFactor: number) => void}) {
+    const map = useMap();
+    useEffect(() => {
+        map.setView([lat, lng], zoom);
+    }, [lat, lng, zoom]);
+    useMapEvents({
+        dragend: () => {
+            const center = map.getCenter();
+            if (onPositionChange) {
+                onPositionChange(center, map.getZoom());
+            }
+        },
+        zoomend: () => {
+            if (onPositionChange) {
+                const center = map.getCenter();
+                onPositionChange(center, map.getZoom());
+            }
+        }
+    });
+    return null;
 }
 
 export default () => {
+    type CreateParkingInputErrors = {
+        [key in keyof ParkingCreateInput]?: string[] | null
+    }
+
     const navigator = useRouter();
     const [countrySearchTerm, setCountrySearchTerm] = useState('');
     const [countresFuzzySearch, setCountriesFuzzySearch] = useState<CountryFuzzySearch[]>([]);
     const [areWeSearching, setAreWeSearching] = useState(false);
+    const [governorates, setGovernorates] = useState<CityResponse[] | null>();
+    const [governorateSaver, setGovernorateSaver] = useState<CityResponse[] | null>(null);
+    const [latitude, setLatitude] = useState(position[0]);
+    const [longitude, setLongitude] = useState(position[1]);
+    const [zoomFactor, setZoomFactor] = useState(4);
+    const [markerPosition, setMarkerPosition] = useState<{lat: number, lng: number, zoomFactor: number} | null>(null);
+    const [capacity, setCapacity] = useState('');
+    const [occupiedCapacity, setOccupiedCapacity] = useState('');
+    const [name, setName] = useState('');
 
+    const [errors, errorsDispatcher] = useReducer((state: CreateParkingInputErrors, action: Partial<CreateParkingInputErrors>) => {
+        return {
+            ...state,
+            action
+        }
+    }, {});
+
+    // search through countries
     useCountrySearch({
         serachTerm: countrySearchTerm,
         onResult: setCountriesFuzzySearch,
-        onError: (error) => { console.log(error) },
+        onError: (error) => {
+            toast.error('Error searching countries');
+        },
         abordController: new AbortController(),
         onLoadingStatusChanged: setAreWeSearching
     });
-
     const [selectedElement, setSelectedElement] = useState<CountryFuzzySearch | null>(null);
+    useEffect(() => {
+        if (selectedElement) {
+            // fetch governorates for the selected country
+            cityApi.getByCountryId(selectedElement.id, { page: 0, size: 100 }).then((res) => {
+                setGovernorates(res.content);
+                setGovernorateSaver(res.content);
+            }).catch((e) => {
+                toast.error('Error fetching governorates');
+            });
+        } else {
+            setGovernorates(null);
+        }
+    }, [selectedElement]);
+    // search through governorates
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedGovernorate, setSelectedGovernorate] = useState<CityResponse | null>(null);
+    const searchThroughGovernorates = (searchTerm: string) => {
+        if (!selectedElement || !governorates) return;
+        if( searchTerm.trim() === '') {
+            setGovernorates(governorateSaver);
+            return;
+        }
+        const filtered = governorates.filter((gov) => gov.name.toLowerCase().includes(searchTerm.toLowerCase()) || gov.stateCode.toLowerCase().includes(searchTerm.toLowerCase()));
+        setGovernorates(filtered);
+    };
+    useEffect(() => {
+        searchThroughGovernorates(searchTerm);
+    }, [searchTerm]);
+    useEffect(() => {
+        if (selectedGovernorate) {
+            const lat = selectedGovernorate.latitude;
+            const lng = selectedGovernorate.longitude;
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setLatitude(lat);
+                setLongitude(lng);
+                setZoomFactor(selectedGovernorate.zoomFactor);
+            }
+        }
+    }, [selectedGovernorate]);
+    const {isPending, mutate} = useMutation({
+        mutationFn: async (data: ParkingCreateInput) => {
+            const validation = parkingCreateValidator.safeParse(data);
+            if(validation.success) {
+                // last step sync
+                return parkingApi.create({...data, status: ParkingStatus.OPEN});
+            }
+            errorsDispatcher(validation.error.formErrors.fieldErrors);
+            console.log(validation.error.formErrors.fieldErrors);
+            throw new Error(validation.error.errors.map(e => e.message).join(', '));
+        },
+        mutationKey: ['parkings'],
+        onError: (e) => {
+            toast.error("Error creating parking resource: " + (e as Error).message, {duration: 8000});
+        },
+        onSuccess: (data) => {
+            toast.success("Parking resource created successfuly " + data?.id);
+            setName('');
+            setLatitude(position[0]);
+            setLongitude(position[1]);
+            setZoomFactor(4);
+            setMarkerPosition(null);
+            setCapacity('');
+            setOccupiedCapacity('');
+            setSelectedElement(null);
+            setSearchTerm('');
+            setCountrySearchTerm('');
+            setSelectedGovernorate(null);
+            setGovernorates(null);
+            setMarkerPosition(null);
+            errorsDispatcher({});
+        }
+    });
 
     return (
         <main className="p-6">
@@ -87,13 +209,36 @@ export default () => {
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div title="parking-name">
-                                <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="name">Name</label>
-                                <Input id="Parking's Name" placeholder="Eg, Parking Mohamed Saadoun" />
-                                {
-                                    // errors.name && <p className="text-sm text-red-600 mt-1">{errors.name.message}</p> 
+                            <ComposeInput label="Parking name" placeholder="Eg, Parking Mohamed Sadoun" value={name} onChange={(e) => setName(e.currentTarget.value)} errorMessage={errors.name?.join(', ')}/>
+                            <ComposeInput value={markerPosition?.lat || latitude} label="Latitude" placeholder="Eg, 36.8065" onChange={(e) => {
+                                const newValue = parseFloat(e.currentTarget.value);
+                                if (isNaN(newValue)) {
+                                    return;
                                 }
-                            </div>
+                                setMarkerPosition({lat: newValue, lng: markerPosition?.lng || longitude, zoomFactor: markerPosition?.zoomFactor || zoomFactor});
+                            }} errorMessage={errors.latitude?.join(', ')} />
+                            <ComposeInput value={markerPosition?.lng ?? longitude} label="Longitude" placeholder="Eg, 10.1815" onChange={(e) =>  {
+                                const newValue = parseFloat(e.currentTarget.value);
+                                if (isNaN(newValue)) {
+                                    return;
+                                }
+                                setMarkerPosition({lng: newValue, lat: markerPosition?.lat || longitude, zoomFactor: markerPosition?.zoomFactor || zoomFactor});
+                                setLongitude(newValue);
+                            }} errorMessage={errors.longitude?.join(', ')} /> 
+                            <ComposeInput type="number" value={markerPosition?.zoomFactor || zoomFactor} label="Zoom Factor" placeholder="Eg 10" onChange={(e) => {
+                                const newValue = parseFloat(e.currentTarget.value);
+                                if (isNaN(newValue)) {
+                                    return
+                                }
+                                setMarkerPosition({lng: markerPosition?.lng || longitude, lat: markerPosition?.lat || longitude, zoomFactor: newValue});
+                                setZoomFactor(newValue);
+                            }} />
+                            <ComposeInput value={capacity} onChange={(e) => {
+                                setCapacity(e.currentTarget.value);
+                            }} type="number" label="Total Capacity" placeholder="Eg 100" errorMessage={errors.totalCapacity?.join(', ')} />
+                            <ComposeInput value={occupiedCapacity} onChange={(e) => {
+                                setOccupiedCapacity(e.currentTarget.value);
+                            }} type="number" label="Current Ocuppied Capacity" placeholder="Eg 100" />
                             <div title="country">
                                 <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="country">Country</label>
                                 <Autocomplete placeholder="Eg, Tunisia" value={selectedElement == null ? countrySearchTerm : selectedElement.name} onChange={(value) => { setSelectedElement(null); setCountrySearchTerm(value) }} onSelect={(value) => {
@@ -102,10 +247,22 @@ export default () => {
                                 }} items={countresFuzzySearch.map<AutocompleteItem>((value) => { return { label: value.name, id: value.id } })} loading={areWeSearching} />
                             </div>
                             {
-                                selectedElement && (
+                                governorates && (
+                                    <div>
+
                                     <div title="country">
-                                        <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="governorate">Governorate</label>
-                                        <Autocomplete placeholder="Eg, Ariana" value={''} onChange={() => { }} onSelect={() => { }} items={[]} loading={false} />
+                                        <label className="block text-sm font-medium mb-1 text-muted-foreground" htmlFor="governorate">Governorate ({governorateSaver!.length})</label>
+                                        <Autocomplete placeholder="Eg, Ariana" value={searchTerm} onChange={(e) => {
+                                            setSelectedGovernorate(null);
+                                            setSearchTerm(e);
+                                        }}
+                                         onSelect={(e) => {
+                                            setSearchTerm(e.label);
+                                            setSelectedGovernorate(governorates.find(gov => gov.id === e.id) || null);
+                                          }}
+                                         items={governorates.map(it => {return {id: it.id, label: it.name + '('+ it.stateCode + ')'}})} loading={false} />
+                                    </div>
+                                        {errors.cityId && <p className="text-sm text-red-600 mt-1">{errors.cityId}</p>}
                                     </div>
                                 )
                             }
@@ -126,15 +283,45 @@ export default () => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <MapContainer style={{ height: '400px' }} center={position} zoom={13} scrollWheelZoom={true}>
+                            <MapContainer style={{ height: '400px' }} center={[position[0], position[1]]} zoom={zoomFactor ?? 7} scrollWheelZoom={true}>
                                 <TileLayer
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 />
-                                <LocationMarker />
+                                <LocationMarker onPositionChanged={(latlng, zoomFactor) => {
+                                    setMarkerPosition({ lat: latlng.lat, lng: latlng.lng, zoomFactor: zoomFactor});
+                                }} />
+                                <LatitudeLongitudeSetter lat={latitude} lng={longitude} zoom={zoomFactor} onPositionChange={(values, newZoom) => {
+                                    setLatitude(values.lat);
+                                    setLongitude(values.lng);
+                                    setZoomFactor(newZoom);
+                                    // setParkingPosition({ lat: values.lat, lng: values.lng, zoomFactor: newZoom});
+                                }} />
                             </MapContainer>
                         </CardContent>
                     </Card>
+                </div>
+                <div className="actions mt-2 flex justify-end">
+                    <Button variant="outline" className="hover:text-gray-500 mr-2" onClick={() => {}}>
+                        <ArrowLeft />
+                        <p>Cancel</p>
+                    </Button>
+                    <Button
+                        disabled={isPending}
+                        onClick={() => {
+                            mutate({
+                                name,
+                                latitude: markerPosition?.lat || latitude,
+                                longitude: markerPosition?.lng || longitude,
+                                totalCapacity: isNaN(parseInt(capacity)) ? 0 : parseInt(capacity),
+                                currentOccupied: isNaN(parseInt(occupiedCapacity)) ? 0 : parseInt(occupiedCapacity),
+                                cityId: selectedGovernorate ? selectedGovernorate.id : '',
+                                zoomFactor: markerPosition?.zoomFactor || zoomFactor
+                            });
+                        }}>
+                        <ParkingCircle />
+                        <p>Create Parking</p>
+                    </Button>
                 </div>
             </div>
         </main>

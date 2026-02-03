@@ -86,7 +86,9 @@ export interface CountryResponse {
 export interface CityResponse {
   id: UUID;
   name: string;
-  postalCode: string;
+  latitude: number;
+  longitude: number;
+  zoomFactor: number;
   stateCode: string;
   country: CountryResponse;
   createdAt: string;
@@ -226,7 +228,7 @@ export interface PlaceUpdate {
 }
 
 export interface ParkingCreate {
-  placeId: UUID;
+  cityId: UUID;
   name: string;
   latitude: number;
   longitude: number;
@@ -278,6 +280,9 @@ export interface EntryGateUpdate {
 export interface CountryCreate {
   name: string;
   isoCode: string;
+  latitude: number;
+  longitude: number;
+  zoomFactor: number;
 }
 
 export interface CountryUpdate {
@@ -287,7 +292,9 @@ export interface CountryUpdate {
 
 export interface CityCreate {
   name: string;
-  postalCode: string;
+  latitude: number;
+  longitude: number;
+  zoomFactor: number;
   stateCode: string;
   countryId: UUID;
 }

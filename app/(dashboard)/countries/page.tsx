@@ -17,6 +17,7 @@ export default () => {
     const [addCountryOpen, setAddCountryOpen] = useState(false);
     const [countryName, setCountryName] = useState('');
     const [countryCode, setCountryCode] = useState('');
+    const navigator = useRouter();
 
     const [submitedWorks, setSubmitedWorks] = useState<{howManySuccess: number, howManyFailed: number, totalDone: number, total: number} | null>(null);
     const [failedInstances, setFailedInstances] = useState<{raison: string, countryCreate: CountryCreate}[] | null>(null);
@@ -86,9 +87,9 @@ export default () => {
                     continue;
                 }
                 try {
-                    const elementCreated = await countryApi.create(parsed.data);
-                    console.log('Created element:', elementCreated);
-                    setSubmitedElements((value) => value ? [...value, elementCreated] : [elementCreated]);
+                    // TODO: optimize this part // const elementCreated = await countryApi.create(parsed.data);
+                    // console.log('Created element:', elementCreated);
+                    // setSubmitedElements((value) => value ? [...value, elementCreated] : [elementCreated]);
                     setSubmitedWorks((value) =>
                         value ? { ...value, howManySuccess: value.howManySuccess + 1, totalDone: value.totalDone + 1 } : { howManySuccess: 1, howManyFailed: 0, totalDone: 1, total: countryCreates.length }
                     );
@@ -114,7 +115,7 @@ export default () => {
             <div className="flex justify-between w-full">
                 <PageHeader title="Countries" subtitle="Manage countries here" />
                 <div className="actions flex gap-2">
-                    <Button onClick={() => setAddCountryOpen(true)}><Plus fontWeight={900} style={{ fontWeight: 900 }} /></Button>
+                    <Button onClick={() => navigator.push('countries/new')}><Plus fontWeight={900} style={{ fontWeight: 900 }} /></Button>
                     <Button onClick={() => setOpenJsonUploader(true)}><FileJson/></Button>
                     <Button onClick={() => {}}><Filter /></Button>
                     <Button variant={'outline'} className="text-muted-foreground hover:text-white" onClick={() => { }}>
@@ -161,7 +162,7 @@ export default () => {
                     </div>
                 <AlertDialogFooter>
                     <AlertDialogCancel className="hover:text-gray-600" onClick={() => setAddCountryOpen(false)}>Cancel</AlertDialogCancel>
-                    <Button disabled={isPending} onClick={() => {mutate({name: countryName, isoCode: countryCode})}}>Save</Button>
+                    {/* <Button disabled={isPending} onClick={() => {)}}>Save</Button> */}
                 </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

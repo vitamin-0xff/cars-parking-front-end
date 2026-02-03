@@ -12,7 +12,6 @@ export const CitiesTable = () => {
 
     const countiesHeaders: HeadingColumns<CityResponse> = [
         {name: 'Name', keyAccessor: 'name', uniqueKey: 'name'},
-        {name: 'Code', keyAccessor: 'postalCode', uniqueKey: 'postalCode'},
         {name: 'State Code', keyAccessor: 'stateCode', uniqueKey: 'stateCode'},
         {name: 'Country', keyAccessor: 'country', uniqueKey: 'country',
             render: (value: {name: string, id: string}) => {

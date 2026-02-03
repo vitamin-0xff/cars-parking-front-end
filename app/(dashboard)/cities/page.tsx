@@ -10,17 +10,18 @@ import { Filter, Plus, Search } from "lucide-react"
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { CitiesTable } from "@/components/cities/cities";
-import { AddCitySheet } from "@/components/ui/defined-components/add-city-sheet";
+import { useRouter } from "next/navigation";
 
 export default () => {
     const [addcityOpen, setAddcityOpen] = useState(false);
+    const navigator = useRouter();
 
     return (
         <main className="p-6">
             <div className="flex justify-between w-full">
                 <PageHeader title="Cities" subtitle="Manage cities here" />
                 <div className="actions flex gap-2">
-                    <Button onClick={() => setAddcityOpen(true)}><Plus fontWeight={900} style={{ fontWeight: 900 }} /></Button>
+                    <Button onClick={() => navigator.push('/cities/new')}><Plus fontWeight={900} style={{ fontWeight: 900 }} /></Button>
                     <Button onClick={() => {}}><Filter /></Button>
                     <Button variant={'outline'} className="text-muted-foreground hover:text-white" onClick={() => { }}>
                         <div className="flex items-center gap-2">
@@ -33,8 +34,6 @@ export default () => {
             <div className="table-wrapper">
                 <CitiesTable />
             </div>
-            {/* modals here */}
-            <AddCitySheet selectedCountry={null} isOpen={addcityOpen} onCloseRequest={() => setAddcityOpen(false)} />
         </main>
         
     )
