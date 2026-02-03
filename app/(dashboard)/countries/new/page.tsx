@@ -180,7 +180,7 @@ export default () => {
                                     <ScanSearchIcon />
                                 </div>
                             </div>
-                            <ComposeInput type='number' value={zoomFactor} label="Zoom Factor" placeholder="Eg 10" />
+                            <ComposeInput readOnly type='number' value={zoomFactor} label="Zoom Factor" placeholder="Eg 10" />
                         </div>
                     </CardContent>
                 </Card>
