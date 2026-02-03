@@ -30,7 +30,7 @@ export default () => {
     const [browserFormattedNow, browserFormattedExpiration] = [browserFromatDate(dateNow), browserFromatDate(expresionDate)];
     const [currentSelectedCurrency, setSelectedCurrency] = useState('DT');
     const queryClient = useQueryClient();
-    const { id } = useParams<{ id: string }>()
+    const { id } = useParams<{ id: string }>();
     const [creditsToAdd, setCreditsToAdd] = useState(0);
 
     const { register, getValues, reset, handleSubmit, formState: { errors } } = useForm({
@@ -104,6 +104,14 @@ export default () => {
         }
     }, [data]);
 
+    const verifieDataChanged = () => {
+        return countryName !== data?.name ||
+               countryIsoCode !== data?.isoCode ||
+               latitude !== data?.latitude ||
+               longitude !== data?.longitude ||
+               zoomFactor !== data?.zoomFactor;
+    }
+
 
     return (
         <main className="p-6">
@@ -114,7 +122,16 @@ export default () => {
                         <p>Back</p>
                     </Button>
                 </div>
-                <PageHeader title="Country" subtitle="Country details here" />
+                {
+                    !verifieDataChanged() ? (
+                        <PageHeader title="Country" subtitle="Country details here" />
+                    ):  <PageHeader title="Country" subtitle="Country details here" onConfirmRequest={
+                        () => {
+                            toast.error("No changes detected", { duration: 4000 });
+                        }
+                    } />
+
+                    }
             </div>
             <div className="mt-6">
                 <Card>

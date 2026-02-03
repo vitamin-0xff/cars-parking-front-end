@@ -52,5 +52,60 @@ export function toDateValue(stringDate: string | null | undefined, formatter?: (
     return (new Date(stringDate)).toISOString(); // in case no formatter is provided return ISO string
 }
 
+export function objectsDifferenceCallculator(oldObj: any, newObj: any) {
+  const changes: any = {};
+
+  function walk(oldVal: any, newVal: any, path: string) {
+    // If both are strictly equal → no change
+    if (oldVal === newVal) return;
+
+    // Handle non-objects (including null)
+    const oldIsObj = oldVal && typeof oldVal === "object";
+    const newIsObj = newVal && typeof newVal === "object";
+
+    if (!oldIsObj || !newIsObj) {
+      changes[path] = newVal;
+      return;
+    }
+
+    // Collect all keys from both objects
+    const keys = new Set([
+      ...Object.keys(oldVal),
+      ...Object.keys(newVal)
+    ]);
+
+    for (const key of keys) {
+      const nextPath = path ? `${path}.${key}` : key;
+      walk(oldVal[key], newVal[key], nextPath);
+    }
+  }
+
+  walk(oldObj, newObj, "");
+  return changes;
+}
+
+
+export function removeUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value
+      .map(removeUndefined)
+      .filter(v => v !== undefined) as unknown as T;
+  }
+
+  if (value !== null && typeof value === "object") {
+    const result: any = {};
+
+    for (const [key, val] of Object.entries(value)) {
+      const cleaned = removeUndefined(val);
+      if (cleaned !== undefined) {
+        result[key] = cleaned;
+      }
+    }
+
+    return result;
+  }
+
+  return value;
+}
 
 export const currencies = ['DT', 'USD']

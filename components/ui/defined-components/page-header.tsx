@@ -24,14 +24,13 @@ function PageHeader({ title, subtitle, onEditRequest, onViewRequest, onConfirmRe
                   }
                   {
                     onViewRequest && 
-                    <Button className="hover:text-primary" variant="outline" onClick={onViewRequest}>
+                    <Button className="hover:text-primary cursor-pointer" variant="outline" onClick={onViewRequest}>
                       <View />
                     </Button>
-                    }
-
+                  }
                   {
                     onConfirmRequest && 
-                    <Button className="hover:text-primary" variant="outline" onClick={onConfirmRequest}>
+                    <Button className="hover:text-primary cursor-pointer" variant="outline" onClick={onConfirmRequest}>
                       <Save />
                     </Button>
                     }
