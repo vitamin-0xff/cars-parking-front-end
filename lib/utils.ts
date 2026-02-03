@@ -108,4 +108,22 @@ export function removeUndefined<T>(value: T): T {
   return value;
 }
 
+import { ZodError } from "zod";
+
+/**
+ * Convert a typed ZodError into a single string
+ * Each property with errors is formatted as "key: message1, message2"
+ * and all entries are joined by semicolons
+ */
+export function zodErrorToString<T extends Record<string, any>>(
+  error: ZodError<T>
+): string {
+    const messages: string[] = [];
+    error.errors.forEach((err) => {
+        messages.push(err.message);
+    });
+
+  return messages.join("\n");
+}
+
 export const currencies = ['DT', 'USD']
