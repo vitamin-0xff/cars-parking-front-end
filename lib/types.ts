@@ -79,6 +79,9 @@ export interface CountryResponse {
   id: UUID;
   name: string;
   isoCode: string;
+  latitude: number;
+  longitude: number;
+  zoomFactor: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -288,6 +291,9 @@ export interface CountryCreate {
 export interface CountryUpdate {
   name?: string;
   isoCode?: string;
+  latitude?: number;
+  longitude?: number;
+  zoomFactor?: number;
 }
 
 export interface CityCreate {

@@ -3,7 +3,8 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { HeadingColumns, TableWrapper } from "../ui/defined-components/table-wrapper";
 import { CountryResponse } from "@/lib/types";
 import { Pagination } from "../ui/pagination";
-import { useState } from "react";
+import { useReducer, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export const CountriesTable = () => {
 
@@ -35,11 +36,15 @@ export const CountriesTable = () => {
         queryFn:  () => countryApi.getAll(tableStatus),
         placeholderData: keepPreviousData
     });
+    const navigator = useRouter();
 
     return (
         <div>
             {
-                data && <TableWrapper onRowClicked={(row) => console.log(row)} data={data.content} headingColumns={countiesHeaders} onViewClicked={(row) => {console.log("View Request " + row.id)}}/>
+                data && <TableWrapper onRowClicked={(row) => console.log(row)} data={data.content} headingColumns={countiesHeaders}
+                onViewClicked={(row) => {
+                    navigator.push(`/countries/${row.id}`);
+                }}/>
             }
             {
                 data && <Pagination totalPages={data.totalPages} currentPage={data.number + 1} onPageChange={(newPage) => setTableStatus((p) => {return {...p, page: newPage - 1}})} />
