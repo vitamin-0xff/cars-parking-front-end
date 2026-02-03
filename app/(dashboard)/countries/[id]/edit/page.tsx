@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countryApi, creditSupplingApi } from "@/lib/api";
 import { CardCreateV1, CreditSource, CreditStatus, UUID } from "@/lib/types";
-import { browserFromatDate, currencies, formatDateToDDMMYYYY, toDateValue } from "@/lib/utils";
+import { browserFromatDate, currencies, formatDateToDDMMYYYY, objectsDifferenceCallculator, removeUndefined, toDateValue } from "@/lib/utils";
 import { CardCreateInput, cardCreateValidator } from "@/lib/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
@@ -112,6 +112,11 @@ export default () => {
                zoomFactor !== data?.zoomFactor;
     }
 
+    const newObject = () => {
+        const newObjct = objectsDifferenceCallculator(data, {name: countryName, isoCode: countryIsoCode, latitude, longitude, zoomFactor});
+        console.log("New object to submit:", newObjct);
+        console.log(removeUndefined(newObjct));
+    }
 
     return (
         <main className="p-6">
@@ -127,7 +132,7 @@ export default () => {
                         <PageHeader title="Country" subtitle="Country details here" />
                     ):  <PageHeader title="Country" subtitle="Country details here" onConfirmRequest={
                         () => {
-                            toast.error("No changes detected", { duration: 4000 });
+                            newObject();
                         }
                     } />
 
