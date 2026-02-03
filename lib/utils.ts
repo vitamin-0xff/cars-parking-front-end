@@ -35,4 +35,22 @@ export function browserFromatDate(date: Date): string {
   return formatDateToYYYYMMDD(date);
 }
 
+export function mayNotSepcified(value: string | null | undefined): string {
+    if(!value || value.trim() === '') {
+        return 'Not Specified';
+    }
+    return value;
+}
+
+export function toDateValue(stringDate: string | null | undefined, formatter?: (date: Date) => string): string {
+    if(!stringDate || stringDate.trim() === '') {
+        return 'Not Specified';
+    }
+    if(formatter) {
+        return formatter(new Date(stringDate));
+    }
+    return (new Date(stringDate)).toISOString(); // in case no formatter is provided return ISO string
+}
+
+
 export const currencies = ['DT', 'USD']
