@@ -26,7 +26,7 @@ type Props = {
     onLongLatChanged?: (newCenter: [number, number]) => void;
 };
 
-function MoveMapChange({ center, zoom, onZoomChanged, onLongLatChanged }: Props) {
+function MoveMapChange({ onZoomChanged, onLongLatChanged }: Props) {
     const map = useMap();
     useMapEvents({
         click: (e) => {

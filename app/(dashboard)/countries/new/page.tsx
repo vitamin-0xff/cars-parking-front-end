@@ -33,21 +33,13 @@ type Props = {
   onLongLatChanged?: (newCenter: [number, number]) => void;
 };
 
-export function MoveMap({ center, zoom, onZoomChanged, onLongLatChanged }: Props) {
+export function MoveMap({ center, onZoomChanged, onLongLatChanged }: Props) {
   const map = useMap();
   useMapEvents({
     click: (e) => {
         const { lat, lng } = e.latlng;
-        map.setView([lat, lng], map.getZoom());
         if (onLongLatChanged) {
             onLongLatChanged([lat, lng]);
-        }
-    },
-    dragend: () => {
-        const center = map.getCenter();
-        console.log("Map dragged to " + center);
-        if (onLongLatChanged) {
-            onLongLatChanged([center.lat, center.lng]);
         }
     },
     zoomend: () => {
@@ -57,10 +49,19 @@ export function MoveMap({ center, zoom, onZoomChanged, onLongLatChanged }: Props
         }
     }
   });
-  map.setView(center, zoom);
-
   return null;
 }
+
+
+function MoveMapChanges({center}: {center?: [number, number] | null}) {
+    if(center == undefined) {
+        return null;
+    }
+    const map = useMap();
+    map.setView(center);
+    return null;
+}
+
 
 export default () => {
     const navigator = useRouter();
@@ -87,7 +88,7 @@ export default () => {
             longitude: longitude
         }
     }, [state]);
-
+    const [searchedLongLat, setSearchedLongLat] = useState<[number, number] | null>(null);
     const handleSearchCountry = async (query: string) => {
         if(!query || query.trim() === '') {
             return;
@@ -103,6 +104,7 @@ export default () => {
                     longitude: countryData.lon,
                     code: countryData.address?.country_code?.toUpperCase() || ''
                 });
+                setSearchedLongLat([parseFloat(countryData.lat), parseFloat(countryData.lon)]);
                 toast.success('Country data loaded from search');
             }else {
                 toast.error('No country found for the given query');
@@ -198,16 +200,18 @@ export default () => {
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 />
-                                <Marker position={[0, 0]}>
+                                <Marker position={[latitude, longitude]}>
                                     <Popup>
                                         A pretty CSS3 popup. <br /> Easily customizable.
                                     </Popup>
                                 </Marker>
                             <MoveMap center={[latitude, longitude]} zoom={zoomFactor} onZoomChanged={(newZoom) => setZoomFactor(newZoom)}
                             onLongLatChanged={(longLat) => {
+                                setSearchedLongLat(null); // change long lat from search to null in order to not override user changes (it is a solution workaround to a react-leaflet issue)
                                 dispatcher({latitude: longLat[0].toString(), longitude: longLat[1].toString()});
                             }}
                             />
+                            <MoveMapChanges center={searchedLongLat} />
                             </MapContainer>
                     </CardContent>
                 </Card>
