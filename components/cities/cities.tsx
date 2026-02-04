@@ -51,7 +51,7 @@ export const CitiesTable = () => {
     return (
         <div>
             {
-                data && <TableWrapper onRowClicked={(row) => console.log(row)} data={data.content} headingColumns={countiesHeaders} onViewClicked={(row) => {console.log("View Request " + row.id)}}/>
+                data && <TableWrapper onRowClicked={(row) => console.log(row)} data={data.content} headingColumns={countiesHeaders} onViewClicked={(row) => {navigator.push(`/cities/${row.id}`)}}/>
             }
             {
                 data && <Pagination totalPages={data.totalPages} currentPage={data.number + 1} onPageChange={(newPage) => setTableStatus((p) => {return {...p, page: newPage - 1}})} />
