@@ -38,9 +38,16 @@ const parkingCreateValidator = z.object({
   cityId: z.string().uuid({message: "Coudn't parse the city correctly please select city"})
 });
 
+
+const updateCountryValidator = countryCreateValidator.partial();
+const updateCityValidator = cityCreateValidator.partial();
+const updateCardValidator = cardCreateValidator.partial();
+const updateParkingValidator = parkingCreateValidator.partial();
+
 export type CountryCreateInput = z.infer<typeof countryCreateValidator>;
 export type CityCreateInput = z.infer<typeof cityCreateValidator>;
 export type CardCreateInput = z.infer<typeof cardCreateValidator>;
 export type ParkingCreateInput = z.infer<typeof parkingCreateValidator>;
 
-export {countryCreateValidator, cityCreateValidator, cardCreateValidator, parkingCreateValidator};
+export {countryCreateValidator, cityCreateValidator, cardCreateValidator, parkingCreateValidator,
+        updateCountryValidator, updateCityValidator, updateCardValidator, updateParkingValidator};

@@ -7,13 +7,13 @@ import { DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMe
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countryApi, creditSupplingApi } from "@/lib/api";
-import { CardCreateV1, CreditSource, CreditStatus, UUID } from "@/lib/types";
-import { browserFromatDate, currencies, formatDateToDDMMYYYY, objectsDifferenceCallculator, removeUndefined, toDateValue } from "@/lib/utils";
-import { CardCreateInput, cardCreateValidator } from "@/lib/validators";
+import { CardCreateV1, CountryResponse, CreditSource, CreditStatus, UUID } from "@/lib/types";
+import { browserFromatDate, currencies, formatDateToDDMMYYYY, objectsDifferenceCallculator, removeUndefined, toDateValue, zodErrorToString } from "@/lib/utils";
+import { CardCreateInput, cardCreateValidator, updateCountryValidator } from "@/lib/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Save, X } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -22,6 +22,7 @@ import { KeyValueView } from "@/components/ui/KeyValueView";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { MoveMap } from "@/app/(dashboard)/cities/new/page";
 import { ComposeInput } from "@/components/ui/defined-components/compose-input";
+import { set } from "zod";
 
 export default () => {
     const navigator = useRouter();
@@ -33,7 +34,7 @@ export default () => {
     const { id } = useParams<{ id: string }>();
     const [creditsToAdd, setCreditsToAdd] = useState(0);
 
-    const { register, getValues, reset, handleSubmit, formState: { errors } } = useForm({
+    const { getValues, reset, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(cardCreateValidator),
         defaultValues: {
             name: '',
@@ -46,77 +47,82 @@ export default () => {
         }
     });
 
-    const { isPending: isPendingSupply, mutate: mutateSupply } = useMutation({
-        mutationFn: async (data: { credits: number, cardId: UUID, currency: string }) => {
-            if (data.credits <= 0) {
-                throw new Error("Credits to add must be greater than zero");
-            }
-            await creditSupplingApi.create({
-                cardId: data.cardId,
-                amount: data.credits,
-                feeTaken: data.credits * 4,
-                source: CreditSource.ADMIN,
-                status: CreditStatus.SUCCESS,
-                balanceBefore: getValues().creditBalance,
-                balanceAfter: getValues().creditBalance + data.credits,
-                reference: `SUPPLY-${Date.now()}`
-            })
-        },
-        onSuccess: () => {
-            toast.success("Credits supplied successfully", { duration: 7000 });
-            setCreditsToAdd(0);
-            queryClient.invalidateQueries({ queryKey: ['cards'] });
-        },
-        onError: (error: any) => {
-            toast.error(`Error supplying credits: ${error?.message || 'Unknown error'}`, { duration: 7000 });
-        }
-    });
-
-
     const { data, error, isLoading } = useQuery({
         queryKey: ['country', id],
-        queryFn: async () => {
-            console.log("Fetching client with id:", id);
+        queryFn: () => {
             return countryApi.getById(id);
-        }
+        },
     });
+
+    /**
+     * first fetch data update
+     */
+    useEffect(() => {
+        setLatestFetchedData(data ?? null);
+    }, [data]);
 
     /**
      * Country update data
      */
-
-    const [countryName, setCountryName] = useState(data?.name || '');
-    const [countryIsoCode, setCountryIsoCode] = useState(data?.isoCode || '');
-    const [latitude, setLatitude] = useState(data?.latitude || 0);
-    const [longitude, setLongitude] = useState(data?.longitude || 0);
-    const [zoomFactor, setZoomFactor] = useState(data?.zoomFactor || 5);
+    const [countryData, setCountryData] = useState<CountryResponse | null>(data ?? null);
+    const [latestFetchedData, setLatestFetchedData] = useState<CountryResponse | null>(data ?? null);
 
     useEffect(() => {  
-        if(data) {
-            /**
-             * Set country data for edit form
-             */
-            setCountryName(data.name);
-            setCountryIsoCode(data.isoCode);
-            setLatitude(data.latitude);
-            setLongitude(data.longitude);
-            setZoomFactor(data.zoomFactor);
-        }
+        setCountryData(data ?? null); 
     }, [data]);
 
     const verifieDataChanged = () => {
-        return countryName !== data?.name ||
-               countryIsoCode !== data?.isoCode ||
-               latitude !== data?.latitude ||
-               longitude !== data?.longitude ||
-               zoomFactor !== data?.zoomFactor;
+        return countryData?.name !== latestFetchedData?.name ||
+               countryData?.isoCode !== latestFetchedData?.isoCode ||
+               countryData?.latitude !== latestFetchedData?.latitude ||
+               countryData?.longitude !== latestFetchedData?.longitude ||
+               countryData?.zoomFactor !== latestFetchedData?.zoomFactor;
     }
 
     const newObject = () => {
-        const newObjct = objectsDifferenceCallculator(data, {name: countryName, isoCode: countryIsoCode, latitude, longitude, zoomFactor});
-        console.log("New object to submit:", newObjct);
-        console.log(removeUndefined(newObjct));
+        const newObjct = objectsDifferenceCallculator(data, countryData);
+        const validationResult = updateCountryValidator.safeParse(removeUndefined(newObjct));
+        if (!validationResult.success) {
+            validationResult.error;
+            console.error(zodErrorToString(validationResult.error));
+            toast.error(zodErrorToString(validationResult.error));
+            return;
+        }
+        return validationResult.data;
     }
+
+    /**
+     * Country modification mutation
+     */
+    const {isPending, mutate: countryUpdater} = useMutation({ 
+        mutationFn: async () => {
+            const updatedData = newObject();
+            Object.keys(updatedData || {}).length === 0 && toast.error("No changes detected to update.");
+            
+            if(!updatedData) {
+                throw new Error("No changes detected to update.");
+            }
+
+            return countryApi.update(id, updatedData); 
+        },
+        onSuccess: (data) => { 
+            toast.success("Country updated successfully.", { duration: 7000 });
+            setCountryData(data);
+            setLatestFetchedData(data);
+            queryClient.invalidateQueries({ queryKey: ['countries'] });
+        },
+        onError: (error: any) => { 
+            toast.error(`Error updating country: ${error?.message || 'Unknown error'}`, { duration: 7000 });
+        }
+    });
+
+    const updateFieldOfCountryData = (value: Partial<CountryResponse>) => {
+        setCountryData((prev) => ({
+            ...prev!,
+            ...value
+        }));
+    }
+
 
     return (
         <main className="p-6">
@@ -130,11 +136,22 @@ export default () => {
                 {
                     !verifieDataChanged() ? (
                         <PageHeader title="Country" subtitle="Country details here" />
-                    ):  <PageHeader title="Country" subtitle="Country details here" onConfirmRequest={
-                        () => {
-                            newObject();
-                        }
-                    } />
+                    ):  <PageHeader title="Country" subtitle="Country details here"
+                     actions={[
+                        <Button key="reset" className="cursor-pointer hover:text-primary" variant="outline" onClick={() => {
+                            /**
+                             * Reset country edit form data
+                             */
+                            setCountryData(data ?? null);
+                        }}>
+                            <X />
+                        </Button>,
+                        <Button key="save" className="cursor-pointer hover:text-primary" disabled={isPending} variant="outline" onClick={() => {
+                            countryUpdater();
+                        }}> 
+                        {isPending ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                    ]} />
 
                     }
             </div>
@@ -152,8 +169,8 @@ export default () => {
                                 <div className="flex flex-col gap-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <ComposeInput readOnly label="Identifier" value={data.id} />
-                                        <ComposeInput label="Name" value={countryName} onChange={(e) => setCountryName(e.currentTarget.value)} />
-                                        <ComposeInput label="ISO Code" value={countryIsoCode} onChange={(e) => setCountryIsoCode(e.currentTarget.value)} />
+                                        <ComposeInput label="Name" value={countryData?.name ?? ''} onChange={(e) => updateFieldOfCountryData({name: e.currentTarget.value})} />
+                                        <ComposeInput label="ISO Code" value={countryData?.isoCode ?? ''} onChange={(e) => updateFieldOfCountryData({isoCode: e.currentTarget.value})} />
                                         <ComposeInput readOnly label="Creation Date" value={toDateValue(data.createdAt, formatDateToDDMMYYYY)} />
                                     </div>
                                 </div>
@@ -178,19 +195,19 @@ export default () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {(longitude && latitude && zoomFactor) && (
-                            <MapContainer className='h-100' center={[latitude, longitude]} zoom={zoomFactor} scrollWheelZoom={true}>
+                        {(countryData?.longitude && countryData?.latitude && countryData.zoomFactor) && (
+                            <MapContainer className='h-100' center={[countryData?.latitude, countryData?.longitude]} zoom={countryData?.zoomFactor} scrollWheelZoom={true}>
                                 <TileLayer
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 />
                                 
-                                <Marker title={`${latitude} ${latitude}`} position={[latitude, longitude]}>
+                                <Marker title={`${countryData?.latitude} ${countryData?.latitude}`} position={[countryData?.latitude, countryData?.longitude]}>
                                     <Popup>
-                                        ${latitude} ${longitude}
+                                        ${countryData?.latitude} ${countryData?.longitude}
                                     </Popup>
                                 </Marker>
-                                <MoveMap center={[latitude, longitude]} zoom={zoomFactor} onZoomChanged={(newZoom) => { }}
+                                <MoveMap center={[countryData?.latitude, countryData?.longitude]} zoom={countryData?.zoomFactor} onZoomChanged={(newZoom) => { }}
                                 />
                             </MapContainer>
                         )
