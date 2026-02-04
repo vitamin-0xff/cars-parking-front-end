@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/defined-components/page-header"
 import { Skeleton } from "@/components/ui/skeleton";
 import { countryApi } from "@/lib/api";
 import { CountryResponse } from "@/lib/types";
+import 'leaflet/dist/leaflet.css';
 import { formatDateToDDMMYYYY, objectsDifferenceCallculator, removeUndefined, toDateValue, zodErrorToString } from "@/lib/utils";
 import { updateCountryValidator } from "@/lib/validators";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,9 +13,40 @@ import { ArrowLeft, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { MoveMap } from "@/app/(dashboard)/cities/new/page";
 import { ComposeInput } from "@/components/ui/defined-components/compose-input";
+
+
+type Props = {
+    center: [number, number];
+    zoom: number;
+    onZoomChanged?: (newZoom: number) => void;
+    // executed on click
+    onLongLatChanged?: (newCenter: [number, number]) => void;
+};
+
+function MoveMapChange({ center, zoom, onZoomChanged, onLongLatChanged }: Props) {
+    const map = useMap();
+    useMapEvents({
+        click: (e) => {
+            const { lat, lng } = e.latlng;
+            if (onLongLatChanged) {
+                onLongLatChanged([lat, lng]);
+            }
+        },
+        zoomend: () => {
+            console.log("Zoom changed to " + map.getZoom());
+            if (onZoomChanged) {
+                onZoomChanged(map.getZoom());
+            }
+        }
+    });
+    // map.setView(center, zoom);
+    return null;
+}
+
+
 
 export default () => {
     const navigator = useRouter();
@@ -26,17 +58,16 @@ export default () => {
      */
     const { data, error, isLoading } = useQuery({
         queryKey: ['country', id],
-        queryFn: () => {
-            return countryApi.getById(id);
+        queryFn: async () => {
+            const response = await countryApi.getById(id);
+            setLatestFetchedData(response); // set the latest fetched data
+            setCountryData(response); // set the country data
+            if(!response) {
+                throw new Error(`Country not found with id ${id}`);
+            }
+            return response;
         },
     });
-
-    /**
-     * first fetch data update
-     */
-    useEffect(() => {
-        setLatestFetchedData(data ?? null);
-    }, [data]);
 
     /**
      * Country update data
@@ -182,12 +213,28 @@ export default () => {
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 />
                                 
-                                <Marker title={`${countryData?.latitude} ${countryData?.latitude}`} position={[countryData?.latitude, countryData?.longitude]}>
+                                <Marker position={[countryData?.latitude, countryData?.longitude]}>
                                     <Popup>
-                                        ${countryData?.latitude} ${countryData?.longitude}
+                                        <p>
+                                            Latitude: {countryData?.latitude}
+                                        </p>
+                                        <p>
+                                            Longitude: {countryData?.longitude}
+                                        </p>
+                                        <p>
+                                            Zoom Factor: {countryData?.zoomFactor}
+                                        </p>
                                     </Popup>
                                 </Marker>
-                                <MoveMap center={[countryData?.latitude, countryData?.longitude]} zoom={countryData?.zoomFactor} onZoomChanged={(newZoom) => { }}
+                                <MoveMapChange  center={[countryData?.latitude, countryData?.longitude]} zoom={countryData?.zoomFactor} onZoomChanged={(newZoom) => { 
+                                    updateFieldOfCountryData({ zoomFactor: newZoom });
+                                }}
+                                onLongLatChanged={(newCenter) => {
+                                    updateFieldOfCountryData({
+                                      latitude: newCenter[0],
+                                      longitude: newCenter[1]
+                                    });
+                                }}
                                 />
                             </MapContainer>
                         )
