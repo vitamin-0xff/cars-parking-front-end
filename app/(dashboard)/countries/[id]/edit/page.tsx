@@ -1,52 +1,29 @@
 'use client'
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/defined-components/page-header"
-import { DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { countryApi, creditSupplingApi } from "@/lib/api";
-import { CardCreateV1, CountryResponse, CreditSource, CreditStatus, UUID } from "@/lib/types";
-import { browserFromatDate, currencies, formatDateToDDMMYYYY, objectsDifferenceCallculator, removeUndefined, toDateValue, zodErrorToString } from "@/lib/utils";
-import { CardCreateInput, cardCreateValidator, updateCountryValidator } from "@/lib/validators";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
+import { countryApi } from "@/lib/api";
+import { CountryResponse } from "@/lib/types";
+import { formatDateToDDMMYYYY, objectsDifferenceCallculator, removeUndefined, toDateValue, zodErrorToString } from "@/lib/utils";
+import { updateCountryValidator } from "@/lib/validators";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Save, X } from "lucide-react";
-import { useParams, usePathname, useRouter } from "next/navigation"
+import { ArrowLeft, X } from "lucide-react";
+import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { KeyValueView } from "@/components/ui/KeyValueView";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { MoveMap } from "@/app/(dashboard)/cities/new/page";
 import { ComposeInput } from "@/components/ui/defined-components/compose-input";
-import { set } from "zod";
 
 export default () => {
     const navigator = useRouter();
-    const dateNow = new Date();
-    const expresionDate = new Date(dateNow.getFullYear() + 3, dateNow.getMonth(), dateNow.getDate());
-    const [browserFormattedNow, browserFormattedExpiration] = [browserFromatDate(dateNow), browserFromatDate(expresionDate)];
-    const [currentSelectedCurrency, setSelectedCurrency] = useState('DT');
     const queryClient = useQueryClient();
     const { id } = useParams<{ id: string }>();
-    const [creditsToAdd, setCreditsToAdd] = useState(0);
 
-    const { getValues, reset, handleSubmit, formState: { errors } } = useForm({
-        resolver: zodResolver(cardCreateValidator),
-        defaultValues: {
-            name: '',
-            lastName: '',
-            email: '',
-            phone: '',
-            creditBalance: 0,
-            issuedAt: browserFormattedNow,
-            expiredAt: browserFormattedExpiration
-        }
-    });
-
+    /**
+     * initial fetch country data
+     */
     const { data, error, isLoading } = useQuery({
         queryKey: ['country', id],
         queryFn: () => {
@@ -67,10 +44,9 @@ export default () => {
     const [countryData, setCountryData] = useState<CountryResponse | null>(data ?? null);
     const [latestFetchedData, setLatestFetchedData] = useState<CountryResponse | null>(data ?? null);
 
-    useEffect(() => {  
-        setCountryData(data ?? null); 
-    }, [data]);
-
+    /**
+     * @returns difference between latest version server synchronized and latest updated local version
+     */
     const verifieDataChanged = () => {
         return countryData?.name !== latestFetchedData?.name ||
                countryData?.isoCode !== latestFetchedData?.isoCode ||
@@ -79,8 +55,12 @@ export default () => {
                countryData?.zoomFactor !== latestFetchedData?.zoomFactor;
     }
 
+    /**
+     * 
+     * @returns the new object to send to server for update (difference only)  
+     */
     const newObject = () => {
-        const newObjct = objectsDifferenceCallculator(data, countryData);
+        const newObjct = objectsDifferenceCallculator(latestFetchedData, countryData);
         const validationResult = updateCountryValidator.safeParse(removeUndefined(newObjct));
         if (!validationResult.success) {
             validationResult.error;
@@ -97,12 +77,9 @@ export default () => {
     const {isPending, mutate: countryUpdater} = useMutation({ 
         mutationFn: async () => {
             const updatedData = newObject();
-            Object.keys(updatedData || {}).length === 0 && toast.error("No changes detected to update.");
-            
-            if(!updatedData) {
+            if(!updatedData || Object.keys(updatedData || {}).length === 0)  {
                 throw new Error("No changes detected to update.");
-            }
-
+            }            
             return countryApi.update(id, updatedData); 
         },
         onSuccess: (data) => { 
@@ -116,6 +93,9 @@ export default () => {
         }
     });
 
+    /**
+     *  Partial country data to update the countryData state
+     */
     const updateFieldOfCountryData = (value: Partial<CountryResponse>) => {
         setCountryData((prev) => ({
             ...prev!,
