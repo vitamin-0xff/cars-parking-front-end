@@ -57,7 +57,7 @@ export function MoveMap({ center, zoom, onZoomChanged, onLongLatChanged }: Props
             }
         }
     });
-    map.setView(center, zoom);
+    // map.setView(center, zoom);
     return null;
 }
 

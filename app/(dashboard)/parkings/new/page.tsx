@@ -20,8 +20,6 @@ import { set } from "zod";
 import toast from "react-hot-toast";
 import { ComposeInput } from "@/components/ui/defined-components/compose-input";
 import { useMutation } from "@tanstack/react-query";
-import { error } from "console";
-import { t } from "i18next";
 
 
 

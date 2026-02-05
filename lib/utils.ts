@@ -126,4 +126,8 @@ export function zodErrorToString<T extends Record<string, any>>(
   return messages.join("\n");
 }
 
+export function addClassWithCondition(condition: boolean, classToAdd: string): string {
+    return condition ? classToAdd : '';
+}
+
 export const currencies = ['DT', 'USD']

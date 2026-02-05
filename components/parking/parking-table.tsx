@@ -4,6 +4,7 @@ import { HeadingColumns, TableWrapper } from "../ui/defined-components/table-wra
 import { ParkingResponse, ParkingStatus } from "@/lib/types";
 import { Chip } from "../ui/chip";
 import { Table } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export const ParkingTable = (className: {className?: string}) => {
 
@@ -43,9 +44,11 @@ export const ParkingTable = (className: {className?: string}) => {
         queryFn:  () => parkingApi.getAll({page: 0, size: 20})
     });
 
+    const navigator = useRouter();
+
     return (
         <div className={'' + className}>
-            <TableWrapper data={data ? data.content : []} headingColumns={countiesHeaders} />
+            <TableWrapper data={data ? data.content : []} headingColumns={countiesHeaders} onViewClicked={(row) => navigator.push(`/parkings/${row.id}`) } />
         </div>
     )
 }

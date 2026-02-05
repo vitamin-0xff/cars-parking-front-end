@@ -269,7 +269,7 @@ export interface EntryGateCreate {
   name: string;
   direction: Direction;
   hardwareId: string;
-  active: boolean;
+  isActive: boolean;
 }
 
 export interface EntryGateUpdate {

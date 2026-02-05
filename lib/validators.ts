@@ -38,6 +38,13 @@ const parkingCreateValidator = z.object({
   cityId: z.string().uuid({message: "Coudn't parse the city correctly please select city"})
 });
 
+const gateCreateValidator = z.object({
+  name: z.string().trim().min(2, { message: "Name at least 2 character" }).max(40, { message: "Fullname at max 40 character" }).transform((name) => name.trim().toLowerCase()),
+  hardwareId: z.string().trim().min(2, { message: "Hardware ID at least 2 character" }).max(40, { message: "Hardware ID at max 40 character" }).transform((name) => name.trim().toLowerCase()),
+  direction: z.enum(['IN', 'OUT'], { message: "Direction must be either IN or OUT" }),
+  parkingId: z.string().uuid({message: "Coudn't parse the parking correctly please select parking"})
+});
+
 
 const updateCountryValidator = countryCreateValidator.partial();
 const updateCityValidator = cityCreateValidator.partial();
@@ -49,5 +56,5 @@ export type CityCreateInput = z.infer<typeof cityCreateValidator>;
 export type CardCreateInput = z.infer<typeof cardCreateValidator>;
 export type ParkingCreateInput = z.infer<typeof parkingCreateValidator>;
 
-export {countryCreateValidator, cityCreateValidator, cardCreateValidator, parkingCreateValidator,
+export {countryCreateValidator, cityCreateValidator, cardCreateValidator, parkingCreateValidator, gateCreateValidator,
         updateCountryValidator, updateCityValidator, updateCardValidator, updateParkingValidator};
